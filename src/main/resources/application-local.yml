@@ -21,3 +21,6 @@ management:
     web:
       exposure:
         include: health,info
+
+crypto:
+  secret-key: ${CRYPTO_SECRET_KEY:0123456789abcdef}
