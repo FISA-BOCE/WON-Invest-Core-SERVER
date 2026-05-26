@@ -1,6 +1,6 @@
 package com.woorifisa.won_invest_core_server.domain.account.dto.response;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record CreateInvestAccountResponse(
@@ -8,5 +8,5 @@ public record CreateInvestAccountResponse(
         String accountNoDisplay,
         String accountStatus,
         String investConnectedStatus,
-        Instant openedAt
+        LocalDateTime openedAt
 ) {}

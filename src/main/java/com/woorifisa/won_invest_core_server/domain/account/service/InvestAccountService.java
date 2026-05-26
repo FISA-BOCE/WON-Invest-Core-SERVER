@@ -17,13 +17,17 @@ import com.woorifisa.won_invest_core_server.global.exception.handler.BusinessExc
 import com.woorifisa.won_invest_core_server.global.util.AccountMaskUtil;
 import com.woorifisa.won_invest_core_server.global.util.CryptoUtil;
 import com.woorifisa.won_invest_core_server.global.util.JwtUtil;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -71,33 +75,39 @@ public class InvestAccountService {
                         .build()
         );
 
-        // 6. 증권 계좌 원본 정보 생성 + invest_account_uuid 발급
+        // 6. 증권 계좌 원본 정보 생성 + invest_account_uuid 발급 (accountNo 충돌 시 최대 3회 재시도)
         UUID investAccountUuid = UUID.randomUUID();
-        String accountNo = generateAccountNo();
         Instant openedAt = Instant.now();
-        InvestAccount account = InvestAccount.builder()
-                .investAccountUuid(investAccountUuid)
-                .investCustomer(savedCustomer)
-                .userUuid(userUuid)
-                .accountPasswordEnc(passwordEncoder.encode(request.accountPassword()))
-                .accountNo(accountNo)
-                .accountStatus(AccountStatus.ACTIVE)
-                .openedAt(openedAt)
-                .build();
-        investAccountRepository.save(account);
+        String accountNo = generateAccountNo();
+        for (int attempt = 0; attempt < 3; attempt++) {
+            try {
+                investAccountRepository.saveAndFlush(InvestAccount.builder()
+                        .investAccountUuid(investAccountUuid)
+                        .investCustomer(savedCustomer)
+                        .userUuid(userUuid)
+                        .accountPasswordEnc(passwordEncoder.encode(request.accountPassword()))
+                        .accountNo(accountNo)
+                        .accountStatus(AccountStatus.ACTIVE)
+                        .openedAt(openedAt)
+                        .build());
+                break;
+            } catch (DataIntegrityViolationException e) {
+                if (attempt == 2) throw e;
+                accountNo = generateAccountNo();
+            }
+        }
 
         // 7. 통합 사용자 매핑 invest_connected_status = CONNECTED 업데이트 (dirty checking)
         userMapping.connect(investUserUuid);
 
         // 8. 채널계 조회용 증권 계좌 동기화 (account_no_display 마스킹)
         String accountNoDisplay = AccountMaskUtil.mask(accountNo);
-        InvestChnAccount chnAccount = InvestChnAccount.builder()
+        investChnAccountRepository.save(InvestChnAccount.builder()
                 .investAccountUuid(investAccountUuid)
                 .userUuid(userUuid)
                 .accountNoDisplay(accountNoDisplay)
                 .accountStatus(AccountStatus.ACTIVE)
-                .build();
-        investChnAccountRepository.save(chnAccount);
+                .build());
 
         // 9. 응답 반환
         return new CreateInvestAccountResponse(
@@ -105,12 +115,12 @@ public class InvestAccountService {
                 accountNoDisplay,
                 AccountStatus.ACTIVE.name(),
                 InvstConnectedStatus.CONNECTED.name(),
-                openedAt
+                LocalDateTime.ofInstant(openedAt, ZoneId.systemDefault())
         );
     }
 
     private void validatePasswordMatch(String password, String passwordConfirm) {
-        if (!password.equals(passwordConfirm)) {
+        if (!Objects.equals(password, passwordConfirm)) {
             throw new BusinessException(InvestAccountErrorCode.PASSWORD_MISMATCH);
         }
     }

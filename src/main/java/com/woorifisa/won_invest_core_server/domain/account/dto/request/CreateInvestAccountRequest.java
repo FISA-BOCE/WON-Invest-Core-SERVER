@@ -26,5 +26,5 @@ public record CreateInvestAccountRequest(
         String email,
 
         @NotEmpty
-        List<String> agreedTerms
+        List<@NotBlank String> agreedTerms
 ) {}

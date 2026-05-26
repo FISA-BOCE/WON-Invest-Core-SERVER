@@ -12,7 +12,10 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -25,12 +28,15 @@ public class UserMapping extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(nullable = false, unique = true, columnDefinition = "CHAR(36)")
     private UUID userUuid;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(columnDefinition = "CHAR(36)")
     private UUID cardUserUuid;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(columnDefinition = "CHAR(36)")
     private UUID investUserUuid;
 
@@ -39,6 +45,7 @@ public class UserMapping extends BaseTimeEntity {
     private InvstConnectedStatus invstConnectedStatus;
 
     public static UserMapping createNew(UUID userUuid) {
+        Objects.requireNonNull(userUuid, "userUuid must not be null");
         UserMapping mapping = new UserMapping();
         mapping.userUuid = userUuid;
         mapping.invstConnectedStatus = InvstConnectedStatus.NOT_CONNECTED;
@@ -46,6 +53,7 @@ public class UserMapping extends BaseTimeEntity {
     }
 
     public void connect(UUID investUserUuid) {
+        Objects.requireNonNull(investUserUuid, "investUserUuid must not be null");
         this.invstConnectedStatus = InvstConnectedStatus.CONNECTED;
         this.investUserUuid = investUserUuid;
     }

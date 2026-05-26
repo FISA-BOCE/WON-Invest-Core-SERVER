@@ -13,6 +13,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -26,9 +28,11 @@ public class InvestChnAccount extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(nullable = false, unique = true, columnDefinition = "CHAR(36)")
     private UUID investAccountUuid;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(nullable = false, columnDefinition = "CHAR(36)")
     private UUID userUuid;
 

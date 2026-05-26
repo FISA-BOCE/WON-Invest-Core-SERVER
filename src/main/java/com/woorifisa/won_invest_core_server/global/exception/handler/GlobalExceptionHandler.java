@@ -1,5 +1,6 @@
 package com.woorifisa.won_invest_core_server.global.exception.handler;
 
+import com.woorifisa.won_invest_core_server.domain.account.exception.InvestAccountErrorCode;
 import com.woorifisa.won_invest_core_server.global.exception.code.CommonErrorCode;
 import com.woorifisa.won_invest_core_server.global.response.ErrorResponse;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
-        return ErrorResponse.of(CommonErrorCode.INVALID_INPUT_VALUE);
+        return ErrorResponse.of(InvestAccountErrorCode.INVALID_INPUT);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

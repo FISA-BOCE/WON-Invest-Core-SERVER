@@ -14,6 +14,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -25,20 +27,22 @@ import java.util.UUID;
 public class InvestAccount extends BaseTimeEntity {
 
     @Id
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(columnDefinition = "CHAR(36)")
     private UUID investAccountUuid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "invest_user_uuid")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "invest_user_uuid", nullable = false)
     private InvestCustomer investCustomer;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(nullable = false, columnDefinition = "CHAR(36)")
     private UUID userUuid;
 
     @Column(nullable = false)
     private String accountPasswordEnc;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true, length = 12)
     private String accountNo;
 
     @Enumerated(EnumType.STRING)

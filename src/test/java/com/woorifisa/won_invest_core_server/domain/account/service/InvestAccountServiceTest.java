@@ -11,6 +11,7 @@ import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAcco
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestChnAccountRepository;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestCustomerRepository;
 import com.woorifisa.won_invest_core_server.domain.account.repository.UserMappingRepository;
+import com.woorifisa.won_invest_core_server.global.exception.code.CommonErrorCode;
 import com.woorifisa.won_invest_core_server.global.exception.handler.BusinessException;
 import com.woorifisa.won_invest_core_server.global.util.CryptoUtil;
 import com.woorifisa.won_invest_core_server.global.util.JwtUtil;
@@ -91,7 +92,7 @@ class InvestAccountServiceTest {
         assertThat(userMapping.getInvstConnectedStatus()).isEqualTo(InvstConnectedStatus.CONNECTED);
         assertThat(userMapping.getInvestUserUuid()).isNotNull();
 
-        verify(investAccountRepository).save(any());
+        verify(investAccountRepository).saveAndFlush(any());
         verify(investChnAccountRepository).save(any());
     }
 
@@ -137,6 +138,24 @@ class InvestAccountServiceTest {
 
         verify(jwtUtil, never()).extractUserUuid(any());
         verify(userMappingRepository, never()).findByUserUuid(any());
+    }
+
+    @Test
+    @DisplayName("JWT 인증 실패 시 UNAUTHORIZED 예외")
+    void openNewInvestAccount_unauthorized() {
+        // given
+        CreateInvestAccountRequest request = validRequest();
+        given(jwtUtil.extractUserUuid(AUTH_HEADER))
+                .willThrow(new BusinessException(CommonErrorCode.UNAUTHORIZED));
+
+        // when / then
+        assertThatThrownBy(() -> investAccountService.openNewInvestAccount(request, AUTH_HEADER))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode())
+                        .isEqualTo(CommonErrorCode.UNAUTHORIZED));
+
+        verify(userMappingRepository, never()).findByUserUuid(any());
+        verify(investCustomerRepository, never()).save(any());
     }
 
     @Test
