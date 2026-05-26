@@ -17,6 +17,7 @@ import com.woorifisa.won_invest_core_server.global.exception.handler.BusinessExc
 import com.woorifisa.won_invest_core_server.global.util.AccountMaskUtil;
 import com.woorifisa.won_invest_core_server.global.util.CryptoUtil;
 import com.woorifisa.won_invest_core_server.global.util.JwtUtil;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ public class InvestAccountService {
     private final InvestChnAccountRepository investChnAccountRepository;
     private final JwtUtil jwtUtil;
     private final CryptoUtil cryptoUtil;
+    private final PasswordEncoder passwordEncoder;
 
     public CreateInvestAccountResponse openNewInvestAccount(
             CreateInvestAccountRequest request,
@@ -77,7 +79,7 @@ public class InvestAccountService {
                 .investAccountUuid(investAccountUuid)
                 .investCustomer(savedCustomer)
                 .userUuid(userUuid)
-                .accountPasswordEnc(cryptoUtil.encrypt(request.accountPassword()))
+                .accountPasswordEnc(passwordEncoder.encode(request.accountPassword()))
                 .accountNo(accountNo)
                 .accountStatus(AccountStatus.ACTIVE)
                 .openedAt(openedAt)

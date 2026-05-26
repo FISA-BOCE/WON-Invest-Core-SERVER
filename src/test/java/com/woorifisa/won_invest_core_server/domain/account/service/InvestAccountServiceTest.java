@@ -14,6 +14,7 @@ import com.woorifisa.won_invest_core_server.domain.account.repository.UserMappin
 import com.woorifisa.won_invest_core_server.global.exception.handler.BusinessException;
 import com.woorifisa.won_invest_core_server.global.util.CryptoUtil;
 import com.woorifisa.won_invest_core_server.global.util.JwtUtil;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,6 +44,7 @@ class InvestAccountServiceTest {
     @Mock private InvestChnAccountRepository investChnAccountRepository;
     @Mock private JwtUtil jwtUtil;
     @Mock private CryptoUtil cryptoUtil;
+    @Mock private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private InvestAccountService investAccountService;
@@ -72,7 +74,7 @@ class InvestAccountServiceTest {
         given(userMappingRepository.findByUserUuid(USER_UUID)).willReturn(Optional.of(userMapping));
         given(cryptoUtil.encrypt("010-1234-5678")).willReturn("enc_tel");
         given(cryptoUtil.encrypt("hong@example.com")).willReturn("enc_email");
-        given(cryptoUtil.encrypt("pass1234!")).willReturn("enc_pw");
+        given(passwordEncoder.encode("pass1234!")).willReturn("$2a$10$dummy_bcrypt_hash");
         given(investCustomerRepository.save(any(InvestCustomer.class))).willAnswer(inv -> inv.getArgument(0));
         given(investChnAccountRepository.save(any(InvestChnAccount.class))).willAnswer(inv -> inv.getArgument(0));
 
