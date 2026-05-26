@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: won-invest-core-server
+  profiles:
+    active: local
