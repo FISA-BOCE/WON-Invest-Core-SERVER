@@ -156,6 +156,8 @@ class InvestAccountServiceTest {
 
         verify(userMappingRepository, never()).findByUserUuid(any());
         verify(investCustomerRepository, never()).save(any());
+        verify(investAccountRepository, never()).saveAndFlush(any());
+        verify(investChnAccountRepository, never()).save(any());
     }
 
     @Test

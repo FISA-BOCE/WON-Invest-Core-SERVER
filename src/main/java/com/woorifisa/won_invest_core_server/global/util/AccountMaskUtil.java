@@ -8,9 +8,9 @@ public class AccountMaskUtil {
 
     public static String mask(String accountNo) {
         Objects.requireNonNull(accountNo, "accountNo must not be null");
-        if (accountNo.length() < 12) {
-            throw new IllegalArgumentException("accountNo must be at least 12 digits, but was: " + accountNo.length());
+        if (!accountNo.matches("\\d{12}")) {
+            throw new IllegalArgumentException("accountNo must be exactly 12 digits, but was: " + accountNo);
         }
-        return accountNo.substring(0, 3) + "-***-***" + accountNo.substring(9);
+        return accountNo.substring(0, 3) + "-***-***" + accountNo.substring(9, 12);
     }
 }
