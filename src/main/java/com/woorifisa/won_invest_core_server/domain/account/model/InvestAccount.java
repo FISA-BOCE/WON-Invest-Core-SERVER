@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,7 +23,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "invest_account")
+@Table(
+        name = "invest_account",
+        uniqueConstraints = @UniqueConstraint(name = "uk_invest_account_user_uuid_account_no", columnNames = {"user_uuid", "account_no"})
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class InvestAccount extends BaseTimeEntity {

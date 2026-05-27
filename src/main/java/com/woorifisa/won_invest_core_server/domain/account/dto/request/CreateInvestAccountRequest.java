@@ -19,9 +19,6 @@ public record CreateInvestAccountRequest(
         String accountPassword,
 
         @NotBlank
-        String accountPasswordConfirm,
-
-        @NotBlank
         @Email(message = "이메일 형식이 올바르지 않습니다.")
         String email,
 

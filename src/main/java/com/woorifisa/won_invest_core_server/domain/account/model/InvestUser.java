@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,7 +16,10 @@ import org.hibernate.type.SqlTypes;
 import java.util.UUID;
 
 @Entity
-@Table(name = "invest_user")
+@Table(
+        name = "invest_user",
+        uniqueConstraints = @UniqueConstraint(name = "uk_invest_user_user_uuid", columnNames = {"user_uuid"})
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class InvestUser extends BaseTimeEntity {
