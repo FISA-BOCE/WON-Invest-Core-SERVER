@@ -3,6 +3,7 @@ package com.woorifisa.won_invest_core_server.domain.account.model;
 import com.woorifisa.won_invest_core_server.global.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.validation.constraints.Pattern;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -42,6 +43,7 @@ public class InvestAccount extends BaseTimeEntity {
     @Column(name = "account_password_enc", nullable = false)
     private String accountPasswordEnc;
 
+    @Pattern(regexp = "\\d{12}")
     @Column(name = "account_no", nullable = false, unique = true, length = 12)
     private String accountNo;
 
@@ -56,6 +58,11 @@ public class InvestAccount extends BaseTimeEntity {
     public InvestAccount(UUID investAccountUuid, InvestUser investUser, UUID userUuid,
                          String accountPasswordEnc, String accountNo,
                          AccountStatus accountStatus, LocalDateTime openedAt) {
+        if (!investUser.getUserUuid().equals(userUuid)) {
+            throw new IllegalArgumentException(
+                    "investUser.userUuid and userUuid must match, but got: "
+                    + investUser.getUserUuid() + " vs " + userUuid);
+        }
         this.investAccountUuid = investAccountUuid;
         this.investUser = investUser;
         this.userUuid = userUuid;

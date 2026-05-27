@@ -4,9 +4,11 @@ import com.woorifisa.won_invest_core_server.global.exception.code.CommonErrorCod
 import com.woorifisa.won_invest_core_server.global.response.ErrorResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -18,6 +20,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
+        return ErrorResponse.of(CommonErrorCode.INVALID_INPUT_VALUE);
+    }
+
+    @ExceptionHandler({MissingRequestHeaderException.class, MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ErrorResponse> handleBadRequestException(Exception e) {
         return ErrorResponse.of(CommonErrorCode.INVALID_INPUT_VALUE);
     }
 
