@@ -41,12 +41,12 @@ public class InvestAccountService {
         // 1. 약관 동의 검증 (INVEST_BASIC 필수)
         validateRequiredTerms(request.agreedTerms());
 
-        // 3. 이미 개설된 계좌 존재 여부 확인
+        // 2. 이미 개설된 계좌 존재 여부 확인
         if (investUserRepository.findByUserUuid(userUuid).isPresent()) {
             throw new BusinessException(InvestAccountErrorCode.ACCOUNT_ALREADY_CONNECTED);
         }
 
-        // 4. 증권망 고객 원본 정보 생성 (tel_enc, email_enc 암호화)
+        // 3. 증권망 고객 원본 정보 생성 (tel_enc, email_enc 암호화)
         UUID investUserUuid = UUID.randomUUID();
         InvestUser investUser = investUserRepository.save(
                 InvestUser.builder()
@@ -58,7 +58,7 @@ public class InvestAccountService {
                         .build()
         );
 
-        // 5. 증권 계좌 원본 정보 생성 + invest_account_uuid 발급 (accountNo 충돌 시 최대 3회 재시도)
+        // 4. 증권 계좌 원본 정보 생성 + invest_account_uuid 발급 (accountNo 충돌 시 최대 3회 재시도)
         UUID investAccountUuid = UUID.randomUUID();
         LocalDateTime openedAt = LocalDateTime.now();
         String accountNo = generateAccountNo();
@@ -80,7 +80,7 @@ public class InvestAccountService {
             }
         }
 
-        // 6. 응답 반환
+        // 5. 응답 반환
         return new CreateInvestAccountResponse(
                 investAccountUuid,
                 investUserUuid,
