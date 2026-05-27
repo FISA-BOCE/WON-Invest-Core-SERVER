@@ -18,7 +18,7 @@ import java.util.UUID;
 @Table(name = "invest_user")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class InvestCustomer extends BaseTimeEntity {
+public class InvestUser extends BaseTimeEntity {
 
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
@@ -39,8 +39,8 @@ public class InvestCustomer extends BaseTimeEntity {
     private String emailEnc;
 
     @Builder
-    public InvestCustomer(UUID investUserUuid, UUID userUuid,
-                          String customerName, String telEnc, String emailEnc) {
+    public InvestUser(UUID investUserUuid, UUID userUuid,
+                      String customerName, String telEnc, String emailEnc) {
         this.investUserUuid = investUserUuid;
         this.userUuid = userUuid;
         this.customerName = customerName;

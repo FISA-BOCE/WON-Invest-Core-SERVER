@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -28,36 +28,36 @@ public class InvestAccount extends BaseTimeEntity {
 
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(columnDefinition = "CHAR(36)")
+    @Column(name = "invest_account_uuid", columnDefinition = "CHAR(36)")
     private UUID investAccountUuid;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "invest_user_uuid", nullable = false)
-    private InvestCustomer investCustomer;
+    private InvestUser investUser;
 
     @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(nullable = false, columnDefinition = "CHAR(36)")
+    @Column(name = "user_uuid", nullable = false, columnDefinition = "CHAR(36)")
     private UUID userUuid;
 
-    @Column(nullable = false)
+    @Column(name = "account_password_enc", nullable = false)
     private String accountPasswordEnc;
 
-    @Column(nullable = false, unique = true, length = 12)
+    @Column(name = "account_no", nullable = false, unique = true, length = 12)
     private String accountNo;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "account_status", nullable = false)
     private AccountStatus accountStatus;
 
-    @Column(nullable = false)
-    private Instant openedAt;
+    @Column(name = "opened_at", nullable = false)
+    private LocalDateTime openedAt;
 
     @Builder
-    public InvestAccount(UUID investAccountUuid, InvestCustomer investCustomer, UUID userUuid,
+    public InvestAccount(UUID investAccountUuid, InvestUser investUser, UUID userUuid,
                          String accountPasswordEnc, String accountNo,
-                         AccountStatus accountStatus, Instant openedAt) {
+                         AccountStatus accountStatus, LocalDateTime openedAt) {
         this.investAccountUuid = investAccountUuid;
-        this.investCustomer = investCustomer;
+        this.investUser = investUser;
         this.userUuid = userUuid;
         this.accountPasswordEnc = accountPasswordEnc;
         this.accountNo = accountNo;

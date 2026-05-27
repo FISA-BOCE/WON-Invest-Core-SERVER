@@ -3,18 +3,11 @@ package com.woorifisa.won_invest_core_server.domain.account.service;
 import com.woorifisa.won_invest_core_server.domain.account.dto.request.CreateInvestAccountRequest;
 import com.woorifisa.won_invest_core_server.domain.account.dto.response.CreateInvestAccountResponse;
 import com.woorifisa.won_invest_core_server.domain.account.exception.InvestAccountErrorCode;
-import com.woorifisa.won_invest_core_server.domain.account.model.InvestChnAccount;
-import com.woorifisa.won_invest_core_server.domain.account.model.InvestCustomer;
-import com.woorifisa.won_invest_core_server.domain.account.model.InvstConnectedStatus;
-import com.woorifisa.won_invest_core_server.domain.account.model.UserMapping;
+import com.woorifisa.won_invest_core_server.domain.account.model.InvestUser;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountRepository;
-import com.woorifisa.won_invest_core_server.domain.account.repository.InvestChnAccountRepository;
-import com.woorifisa.won_invest_core_server.domain.account.repository.InvestCustomerRepository;
-import com.woorifisa.won_invest_core_server.domain.account.repository.UserMappingRepository;
-import com.woorifisa.won_invest_core_server.global.exception.code.CommonErrorCode;
+import com.woorifisa.won_invest_core_server.domain.account.repository.InvestUserRepository;
 import com.woorifisa.won_invest_core_server.global.exception.handler.BusinessException;
 import com.woorifisa.won_invest_core_server.global.util.CryptoUtil;
-import com.woorifisa.won_invest_core_server.global.util.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,18 +31,14 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class InvestAccountServiceTest {
 
-    @Mock private InvestCustomerRepository investCustomerRepository;
+    @Mock private InvestUserRepository investUserRepository;
     @Mock private InvestAccountRepository investAccountRepository;
-    @Mock private UserMappingRepository userMappingRepository;
-    @Mock private InvestChnAccountRepository investChnAccountRepository;
-    @Mock private JwtUtil jwtUtil;
     @Mock private CryptoUtil cryptoUtil;
     @Mock private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private InvestAccountService investAccountService;
 
-    private static final String AUTH_HEADER = "Bearer test.jwt.token";
     private static final UUID USER_UUID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     private CreateInvestAccountRequest validRequest() {
@@ -69,18 +57,14 @@ class InvestAccountServiceTest {
     void openNewInvestAccount_success() {
         // given
         CreateInvestAccountRequest request = validRequest();
-        UserMapping userMapping = UserMapping.createNew(USER_UUID);
 
-        given(jwtUtil.extractUserUuid(AUTH_HEADER)).willReturn(USER_UUID);
-        given(userMappingRepository.findByUserUuid(USER_UUID)).willReturn(Optional.of(userMapping));
         given(cryptoUtil.encrypt("010-1234-5678")).willReturn("enc_tel");
         given(cryptoUtil.encrypt("hong@example.com")).willReturn("enc_email");
         given(passwordEncoder.encode("pass1234!")).willReturn("$2a$10$dummy_bcrypt_hash");
-        given(investCustomerRepository.save(any(InvestCustomer.class))).willAnswer(inv -> inv.getArgument(0));
-        given(investChnAccountRepository.save(any(InvestChnAccount.class))).willAnswer(inv -> inv.getArgument(0));
+        given(investUserRepository.save(any(InvestUser.class))).willAnswer(inv -> inv.getArgument(0));
 
         // when
-        CreateInvestAccountResponse response = investAccountService.openNewInvestAccount(request, AUTH_HEADER);
+        CreateInvestAccountResponse response = investAccountService.openNewInvestAccount(request, USER_UUID);
 
         // then
         assertThat(response.investAccountUuid()).isNotNull();
@@ -89,32 +73,7 @@ class InvestAccountServiceTest {
         assertThat(response.investConnectedStatus()).isEqualTo("CONNECTED");
         assertThat(response.openedAt()).isNotNull();
 
-        assertThat(userMapping.getInvstConnectedStatus()).isEqualTo(InvstConnectedStatus.CONNECTED);
-        assertThat(userMapping.getInvestUserUuid()).isNotNull();
-
         verify(investAccountRepository).saveAndFlush(any());
-        verify(investChnAccountRepository).save(any());
-    }
-
-    @Test
-    @DisplayName("이미 연결된 증권계좌가 존재하면 ACCOUNT_ALREADY_CONNECTED 예외")
-    void openNewInvestAccount_alreadyConnected() {
-        // given
-        CreateInvestAccountRequest request = validRequest();
-        UserMapping connectedMapping = UserMapping.createNew(USER_UUID);
-        connectedMapping.connect(UUID.randomUUID());
-
-        given(jwtUtil.extractUserUuid(AUTH_HEADER)).willReturn(USER_UUID);
-        given(userMappingRepository.findByUserUuid(USER_UUID)).willReturn(Optional.of(connectedMapping));
-
-        // when / then
-        assertThatThrownBy(() -> investAccountService.openNewInvestAccount(request, AUTH_HEADER))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode())
-                        .isEqualTo(InvestAccountErrorCode.ACCOUNT_ALREADY_CONNECTED));
-
-        verify(investCustomerRepository, never()).save(any());
-        verify(investAccountRepository, never()).save(any());
     }
 
     @Test
@@ -131,33 +90,12 @@ class InvestAccountServiceTest {
         );
 
         // when / then
-        assertThatThrownBy(() -> investAccountService.openNewInvestAccount(request, AUTH_HEADER))
+        assertThatThrownBy(() -> investAccountService.openNewInvestAccount(request, USER_UUID))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode())
                         .isEqualTo(InvestAccountErrorCode.PASSWORD_MISMATCH));
 
-        verify(jwtUtil, never()).extractUserUuid(any());
-        verify(userMappingRepository, never()).findByUserUuid(any());
-    }
-
-    @Test
-    @DisplayName("JWT 인증 실패 시 UNAUTHORIZED 예외")
-    void openNewInvestAccount_unauthorized() {
-        // given
-        CreateInvestAccountRequest request = validRequest();
-        given(jwtUtil.extractUserUuid(AUTH_HEADER))
-                .willThrow(new BusinessException(CommonErrorCode.UNAUTHORIZED));
-
-        // when / then
-        assertThatThrownBy(() -> investAccountService.openNewInvestAccount(request, AUTH_HEADER))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode())
-                        .isEqualTo(CommonErrorCode.UNAUTHORIZED));
-
-        verify(userMappingRepository, never()).findByUserUuid(any());
-        verify(investCustomerRepository, never()).save(any());
-        verify(investAccountRepository, never()).saveAndFlush(any());
-        verify(investChnAccountRepository, never()).save(any());
+        verify(investUserRepository, never()).save(any());
     }
 
     @Test
@@ -172,17 +110,13 @@ class InvestAccountServiceTest {
                 "hong@example.com",
                 List.of("INVEST_AUTO")
         );
-        UserMapping userMapping = UserMapping.createNew(USER_UUID);
-
-        given(jwtUtil.extractUserUuid(AUTH_HEADER)).willReturn(USER_UUID);
-        given(userMappingRepository.findByUserUuid(USER_UUID)).willReturn(Optional.of(userMapping));
 
         // when / then
-        assertThatThrownBy(() -> investAccountService.openNewInvestAccount(request, AUTH_HEADER))
+        assertThatThrownBy(() -> investAccountService.openNewInvestAccount(request, USER_UUID))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode())
                         .isEqualTo(InvestAccountErrorCode.REQUIRED_TERMS_NOT_AGREED));
 
-        verify(investCustomerRepository, never()).save(any());
+        verify(investUserRepository, never()).save(any());
     }
 }

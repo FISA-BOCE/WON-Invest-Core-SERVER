@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum SuccessStatus {
     OK(HttpStatus.OK, "요청이 성공적으로 처리되었습니다."),
-    CREATED(HttpStatus.CREATED, "요청이 성공적으로 생성되었습니다.");
+    CREATED(HttpStatus.CREATED, "요청이 성공적으로 생성되었습니다."),
+    INVEST_ACCOUNT_CREATED(HttpStatus.CREATED, "증권계좌 개설이 완료되었습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
