@@ -7,7 +7,7 @@ public record ApiResponse<T>(
         int status,
 
         String code,
-        String msg,
+        String message,
         T data
 ) {
     public static <T> ApiResponse<T> success(T data) {
@@ -19,11 +19,11 @@ public record ApiResponse<T>(
         );
     }
 
-    public static <T> ApiResponse<T> success(String msg, T data) {
+    public static <T> ApiResponse<T> success(String message, T data) {
         return new ApiResponse<>(
                 200,
                 "SUCCESS",
-                msg,
+                message,
                 data
         );
     }
@@ -37,11 +37,11 @@ public record ApiResponse<T>(
         );
     }
 
-    public static <T> ApiResponse<T> of(SuccessStatus successStatus, String msg, T data) {
+    public static <T> ApiResponse<T> of(SuccessStatus successStatus, String message, T data) {
         return new ApiResponse<>(
                 successStatus.getStatusCode(),
                 "SUCCESS",
-                msg,
+                message,
                 data
         );
     }

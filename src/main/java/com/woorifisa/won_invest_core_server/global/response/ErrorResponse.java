@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 public record ErrorResponse(
         int status,
         String code,
-        String msg
+        String message
 ) {
 
     public static ErrorResponse from(ErrorCode errorCode) {
