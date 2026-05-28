@@ -59,23 +59,16 @@ public class InvestAccountService {
         );
 
         // 4. 증권 계좌 원본 정보 생성 + invest_account_uuid 발급 (accountNo 충돌 시 최대 3회 재시도)
-        UUID investAccountUuid = UUID.randomUUID();
         LocalDateTime openedAt = LocalDateTime.now();
+        UUID investAccountUuid = UUID.randomUUID();
         String accountNo = generateAccountNo();
         for (int attempt = 0; attempt < 3; attempt++) {
             try {
-                investAccountRepository.saveAndFlush(InvestAccount.builder()
-                        .investAccountUuid(investAccountUuid)
-                        .investUser(investUser)
-                        .userUuid(userUuid)
-                        .accountPasswordEnc(passwordEncoder.encode(request.accountPassword()))
-                        .accountNo(accountNo)
-                        .accountStatus(AccountStatus.ACTIVE)
-                        .openedAt(openedAt)
-                        .build());
+                saveInvestAccount(investAccountUuid, investUser, userUuid, request.accountPassword(), accountNo, openedAt);
                 break;
             } catch (DataIntegrityViolationException e) {
                 if (!isAccountNoDuplicate(e) || attempt == 2) throw e;
+                investAccountUuid = UUID.randomUUID();
                 accountNo = generateAccountNo();
             }
         }
@@ -95,6 +88,19 @@ public class InvestAccountService {
         if (agreedTerms == null || !agreedTerms.contains(RequiredTerms.INVEST_BASIC.name())) {
             throw new BusinessException(InvestAccountErrorCode.REQUIRED_TERMS_NOT_AGREED);
         }
+    }
+
+    private void saveInvestAccount(UUID investAccountUuid, InvestUser investUser, UUID userUuid,
+                                    String accountPassword, String accountNo, LocalDateTime openedAt) {
+        investAccountRepository.saveAndFlush(InvestAccount.builder()
+                .investAccountUuid(investAccountUuid)
+                .investUser(investUser)
+                .userUuid(userUuid)
+                .accountPasswordEnc(passwordEncoder.encode(accountPassword))
+                .accountNo(accountNo)
+                .accountStatus(AccountStatus.ACTIVE)
+                .openedAt(openedAt)
+                .build());
     }
 
     private boolean isAccountNoDuplicate(DataIntegrityViolationException e) {

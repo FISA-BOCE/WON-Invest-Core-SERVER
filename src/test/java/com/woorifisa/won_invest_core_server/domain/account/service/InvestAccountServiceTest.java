@@ -18,12 +18,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -46,7 +48,6 @@ class InvestAccountServiceTest {
                 "010-1234-5678",
                 "홍길동",
                 "pass1234!",
-                "pass1234!",
                 "hong@example.com",
                 List.of("INVEST_BASIC", "INVEST_AUTO")
         );
@@ -58,6 +59,7 @@ class InvestAccountServiceTest {
         // given
         CreateInvestAccountRequest request = validRequest();
 
+        given(investUserRepository.findByUserUuid(USER_UUID)).willReturn(Optional.empty());
         given(cryptoUtil.encrypt("010-1234-5678")).willReturn("enc_tel");
         given(cryptoUtil.encrypt("hong@example.com")).willReturn("enc_email");
         given(passwordEncoder.encode("pass1234!")).willReturn("$2a$10$dummy_bcrypt_hash");
@@ -68,6 +70,7 @@ class InvestAccountServiceTest {
 
         // then
         assertThat(response.investAccountUuid()).isNotNull();
+        assertThat(response.investUserUuid()).isNotNull();
         assertThat(response.accountNoDisplay()).matches("\\d{3}-\\*{3}-\\*{3}\\d{3}");
         assertThat(response.accountStatus()).isEqualTo("ACTIVE");
         assertThat(response.investConnectedStatus()).isEqualTo("CONNECTED");
@@ -77,23 +80,17 @@ class InvestAccountServiceTest {
     }
 
     @Test
-    @DisplayName("비밀번호 불일치 시 PASSWORD_MISMATCH 예외")
-    void openNewInvestAccount_passwordMismatch() {
+    @DisplayName("이미 계좌가 존재하는 경우 ACCOUNT_ALREADY_CONNECTED 예외")
+    void openNewInvestAccount_alreadyConnected() {
         // given
-        CreateInvestAccountRequest request = new CreateInvestAccountRequest(
-                "010-1234-5678",
-                "홍길동",
-                "pass1234!",
-                "wrong1234!",
-                "hong@example.com",
-                List.of("INVEST_BASIC")
-        );
+        CreateInvestAccountRequest request = validRequest();
+        given(investUserRepository.findByUserUuid(USER_UUID)).willReturn(Optional.of(mock(InvestUser.class)));
 
         // when / then
         assertThatThrownBy(() -> investAccountService.openNewInvestAccount(request, USER_UUID))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode())
-                        .isEqualTo(InvestAccountErrorCode.PASSWORD_MISMATCH));
+                        .isEqualTo(InvestAccountErrorCode.ACCOUNT_ALREADY_CONNECTED));
 
         verify(investUserRepository, never()).save(any());
     }
@@ -105,7 +102,6 @@ class InvestAccountServiceTest {
         CreateInvestAccountRequest request = new CreateInvestAccountRequest(
                 "010-1234-5678",
                 "홍길동",
-                "pass1234!",
                 "pass1234!",
                 "hong@example.com",
                 List.of("INVEST_AUTO")

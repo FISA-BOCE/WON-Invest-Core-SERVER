@@ -25,7 +25,10 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "invest_account",
-        uniqueConstraints = @UniqueConstraint(name = "uk_invest_account_user_uuid_account_no", columnNames = {"user_uuid", "account_no"})
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_invest_account_user_uuid", columnNames = {"user_uuid"}),
+                @UniqueConstraint(name = "uk_invest_account_account_no", columnNames = {"account_no"})
+        }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -48,7 +51,7 @@ public class InvestAccount extends BaseTimeEntity {
     private String accountPasswordEnc;
 
     @Pattern(regexp = "\\d{12}")
-    @Column(name = "account_no", nullable = false, unique = true, length = 12)
+    @Column(name = "account_no", nullable = false, length = 12)
     private String accountNo;
 
     @Enumerated(EnumType.STRING)
