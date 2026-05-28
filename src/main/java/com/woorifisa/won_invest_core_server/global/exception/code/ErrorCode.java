@@ -1,4 +1,4 @@
-package com.woorifisa.won_invest_core_server.global.response;
+package com.woorifisa.won_invest_core_server.global.exception.code;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

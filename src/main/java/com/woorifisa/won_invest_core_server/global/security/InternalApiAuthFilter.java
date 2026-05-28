@@ -6,7 +6,7 @@ package com.woorifisa.won_invest_core_server.global.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.woorifisa.won_invest_core_server.global.config.InternalAuthProperties;
-import com.woorifisa.won_invest_core_server.global.response.ErrorCode;
+import com.woorifisa.won_invest_core_server.global.exception.code.ErrorCode;
 import com.woorifisa.won_invest_core_server.global.response.ErrorResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -38,13 +38,36 @@ public class InternalApiAuthFilter extends OncePerRequestFilter {
     // Java 객체를 JSON으로 바꿔주는 Jackson 객체 - 인증 실패 시 ErrorResponse 객체를 JSON으로 변환해서 응답에 써줄 때 사용
     private final ObjectMapper objectMapper;
 
-    // URI가 '/internal/'로 시작하지 않으면 필터를 적용하지 않음
+    // 이 요청은 필터를 타지 않아도 되는지
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         // getServletPath: context path를 제외한 실제 애플리케이션 내부 경로 기준
-        String path = request.getServletPath();
+        String path = resolveRequestPath(request);
 
+        // path가 /internal 이거나 /internal/로 시작하면 -> 필터 적용
         return !(path.equals("/internal") || path.startsWith("/internal/"));
+    }
+
+    // 실제로 검사할 요청 경로를 안전하게 계산하는 함수
+    private String resolveRequestPath(HttpServletRequest request) {
+        String servletPath = request.getServletPath();
+
+        if (servletPath != null && !servletPath.isBlank()) {
+            return servletPath;
+        }
+
+        String requestUri = request.getRequestURI();
+        String contextPath = request.getContextPath();
+
+        // servletPath가 비어 있으면 fallback
+        if (contextPath != null
+                && !contextPath.isBlank()
+                && requestUri.startsWith(contextPath)) {
+            return requestUri.substring(contextPath.length());
+        }
+
+        // fallback - context path도 없으면 그냥 request URI 그대로 씀
+        return requestUri;
     }
 
     @Override

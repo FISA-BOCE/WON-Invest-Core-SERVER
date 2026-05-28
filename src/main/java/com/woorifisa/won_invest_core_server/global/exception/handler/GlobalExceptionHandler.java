@@ -1,8 +1,8 @@
 // 필수값 누락 시 응답 - 400 요청값 검증에 실패했습니다
 
-package com.woorifisa.won_invest_core_server.global.exception;
+package com.woorifisa.won_invest_core_server.global.exception.handler;
 
-import com.woorifisa.won_invest_core_server.global.response.ErrorCode;
+import com.woorifisa.won_invest_core_server.global.exception.code.ErrorCode;
 import com.woorifisa.won_invest_core_server.global.response.ErrorResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;

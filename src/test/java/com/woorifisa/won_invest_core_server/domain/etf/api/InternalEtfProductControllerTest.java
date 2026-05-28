@@ -5,7 +5,7 @@
 3. 인증 헤더가 맞으면 ETF 상품 동기화가 성공하고 공통 응답 형식으로 반환되는지
  */
 
-package com.woorifisa.won_invest_core_server.domain.etf.controller;
+package com.woorifisa.won_invest_core_server.domain.etf.api;
 
 import com.woorifisa.won_invest_core_server.domain.etf.repository.InvestEtfProductRepository;
 import org.junit.jupiter.api.AfterEach;

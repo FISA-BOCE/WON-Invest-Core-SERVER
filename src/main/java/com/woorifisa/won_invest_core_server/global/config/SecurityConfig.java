@@ -1,6 +1,3 @@
-// SecurityConfig는 /internal/** 경로를 보호하기 위해 Spring Security 필터 체인을 설정하고
-// 내부 API 인증 필터(InternalApiAuthFilter)를 먼저 실행시켜 인증된 요청만 Controller에 도달하도록 만드는 보안 설정 파일
-
 package com.woorifisa.won_invest_core_server.global.config;
 
 import com.woorifisa.won_invest_core_server.global.security.InternalApiAuthFilter;

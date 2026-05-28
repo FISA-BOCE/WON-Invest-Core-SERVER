@@ -1,6 +1,4 @@
-// 내부 서버끼리 ETF 상품 정보를 동기화하는 API
-
-package com.woorifisa.won_invest_core_server.domain.etf.controller;
+package com.woorifisa.won_invest_core_server.domain.etf.api;
 
 import com.woorifisa.won_invest_core_server.domain.etf.dto.request.EtfProductUpsertRequest;
 import com.woorifisa.won_invest_core_server.domain.etf.dto.response.EtfProductUpsertResponse;
@@ -15,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
-public class InternalEtfProductController {
+public class InternalEtfProductApi {
 
     private final InvestEtfProductService investEtfProductService;
 
