@@ -6,6 +6,7 @@ package com.woorifisa.won_invest_core_server.global.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.woorifisa.won_invest_core_server.global.config.InternalAuthProperties;
+import com.woorifisa.won_invest_core_server.global.exception.code.CommonErrorCode;
 import com.woorifisa.won_invest_core_server.global.exception.code.ErrorCode;
 import com.woorifisa.won_invest_core_server.global.response.ErrorResponse;
 import jakarta.servlet.FilterChain;
@@ -81,7 +82,7 @@ public class InternalApiAuthFilter extends OncePerRequestFilter {
 
         // serviceId가 기대값과 다르거나, apiKey가 기대값과 다르면 -> 인증 실패
         if (!isValidInternalRequest(serviceId, apiKey)) {
-            writeErrorResponse(response, ErrorCode.AUTH_401_001);
+            writeErrorResponse(response, CommonErrorCode.UNAUTHORIZED);
             return;
         }
 

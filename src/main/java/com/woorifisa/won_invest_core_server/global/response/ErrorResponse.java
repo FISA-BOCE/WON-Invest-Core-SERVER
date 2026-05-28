@@ -1,6 +1,7 @@
 package com.woorifisa.won_invest_core_server.global.response;
 
 import com.woorifisa.won_invest_core_server.global.exception.code.ErrorCode;
+import org.springframework.http.ResponseEntity;
 
 public record ErrorResponse(
         int status,
@@ -12,8 +13,14 @@ public record ErrorResponse(
         return new ErrorResponse(
                 errorCode.getHttpStatus().value(),
                 errorCode.getCode(),
-                errorCode.getMsg()
+                errorCode.getMessage()
         );
+    }
+
+    public static ResponseEntity<ErrorResponse> of(ErrorCode errorCode) {
+        return ResponseEntity
+                .status(errorCode.getHttpStatus())
+                .body(ErrorResponse.from(errorCode));
     }
 }
 
@@ -21,6 +28,6 @@ public record ErrorResponse(
 {
   "status": 401,
   "code": "AUTH_401_001",
-  "msg": "인증이 필요합니다."
+  "message": "인증이 필요합니다."
 }
  */
