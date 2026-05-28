@@ -6,6 +6,7 @@ import com.woorifisa.won_invest_core_server.domain.etf.dto.request.EtfProductUps
 import com.woorifisa.won_invest_core_server.domain.etf.dto.response.EtfProductUpsertResponse;
 import com.woorifisa.won_invest_core_server.domain.etf.service.InvestEtfProductService;
 import com.woorifisa.won_invest_core_server.global.response.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +22,8 @@ public class InternalEtfProductController {
     // Channel 서버의 ETF 동기화 요청을 받아서
     @PostMapping("/internal/etf-products/sync")
     public ResponseEntity<ApiResponse<EtfProductUpsertResponse>> upsertEtfProduct(
-            @RequestBody EtfProductUpsertRequest request
+            // Valid - 필수값이 없으면 Controller 진입 단계에서 바로 400으로 막힘
+            @Valid @RequestBody EtfProductUpsertRequest request
     ) {
         // Core의 ETF 상품 마스터 저장/수정 Service로 넘기고
         EtfProductUpsertResponse response = investEtfProductService.upsertEtfProduct(request);

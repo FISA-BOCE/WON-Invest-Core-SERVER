@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -47,7 +48,7 @@ class InternalEtfProductControllerTest {
 
     // 테스트1 - 헤더 없이 요청하면 차단되는지 확인
     @Test
-    @DisplayName("내부 인증 헤더가 없으면 ETF 상품 동기화 요청을 401로 차단한다")
+    @DisplayName("test1: 내부 인증 헤더가 없으면 ETF 상품 동기화 요청을 401로 차단한다")
     void upsertEtfProduct_withoutInternalAuthHeaders_returnsUnauthorized() throws Exception {
         // given
         String requestBody = """
@@ -80,7 +81,7 @@ class InternalEtfProductControllerTest {
 
     //테스트2 - API Key 틀림
     @Test
-    @DisplayName("내부 API Key가 틀리면 ETF 상품 동기화 요청을 401로 차단한다")
+    @DisplayName("test2: 내부 API Key가 틀리면 ETF 상품 동기화 요청을 401로 차단한다")
     void upsertEtfProduct_withInvalidApiKey_returnsUnauthorized() throws Exception {
         // given
         String requestBody = """
@@ -115,7 +116,7 @@ class InternalEtfProductControllerTest {
 
     //테스트3 - 인증 성공
     @Test
-    @DisplayName("내부 인증 헤더가 유효하면 ETF 상품을 동기화하고 공통 성공 응답을 반환한다")
+    @DisplayName("success: 내부 인증 헤더가 유효하면 ETF 상품을 동기화하고 공통 성공 응답을 반환한다")
     void upsertEtfProduct_withValidInternalAuthHeaders_returnsSuccess() throws Exception {
         // given
         String requestBody = """
@@ -157,5 +158,41 @@ class InternalEtfProductControllerTest {
 
         // DB 저장 여부 확인 - 1개 행
         assertThat(investEtfProductRepository.count()).isEqualTo(1);
+    }
+
+    // 테스트4 - 필수 요청값 누락 시 - 400
+    @Test
+    @DisplayName("test4: 필수 요청값이 누락되면 ETF 상품 동기화 요청을 400으로 차단한다")
+    void upsertEtfProduct_withInvalidRequest_returnsBadRequest() throws Exception {
+        // given
+        String requestBody = """
+            {
+              "externalProvider": "",
+              "externalEtfId": "VOO",
+              "ticker": "",
+              "isin": "US9229083632",
+              // 필수값 누락
+              "etfName": "",
+              "market": "NYSE",
+              "currency": "USD",
+              "productStatus": "ACTIVE",
+              "isFractionalAvailable": true,
+              "isTradeAvailable": true
+            }
+            """;
+
+        // when & then
+        mockMvc.perform(post(INTERNAL_SYNC_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(SERVICE_ID_HEADER, "won-channel")
+                        .header(API_KEY_HEADER, "test-internal-api-key")
+                        .content(requestBody))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COM_400_001"))
+                .andExpect(jsonPath("$.msg").value("요청값 검증에 실패했습니다."));
+
+        assertThat(investEtfProductRepository.count()).isZero();
     }
 }
