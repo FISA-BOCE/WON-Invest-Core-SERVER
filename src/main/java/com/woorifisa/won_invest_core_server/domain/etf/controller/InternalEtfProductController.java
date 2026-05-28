@@ -20,15 +20,14 @@ public class InternalEtfProductController {
 
     // Channel 서버의 ETF 동기화 요청을 받아서
     @PostMapping("/internal/etf-products/sync")
-    public ResponseEntity<EtfProductUpsertResponse> upsertEtfProduct(
+    public ResponseEntity<ApiResponse<EtfProductUpsertResponse>> upsertEtfProduct(
             @RequestBody EtfProductUpsertRequest request
     ) {
         // Core의 ETF 상품 마스터 저장/수정 Service로 넘기고
         EtfProductUpsertResponse response = investEtfProductService.upsertEtfProduct(request);
         // 처리 결과를 JSON으로 돌려줌
         return ResponseEntity.ok(
-                ApiResponse.success("ETF 상품 마스터 동기화가 완료되었습니다.", response).data()
+                ApiResponse.success("ETF 상품 마스터 동기화가 완료되었습니다.", response)
         );
-
     }
 }
