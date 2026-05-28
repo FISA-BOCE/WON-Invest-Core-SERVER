@@ -41,7 +41,10 @@ public class InternalApiAuthFilter extends OncePerRequestFilter {
     // URI가 '/internal/'로 시작하지 않으면 필터를 적용하지 않음
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/internal/");
+        // getServletPath: context path를 제외한 실제 애플리케이션 내부 경로 기준
+        String path = request.getServletPath();
+
+        return !(path.equals("/internal") || path.startsWith("/internal/"));
     }
 
     @Override
