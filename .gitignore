@@ -46,3 +46,4 @@ src/test/resources/application.yml
 CLAUDE.md
 
 scripts/.DS_Store
+src/test/resources/application-test.yml
