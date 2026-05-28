@@ -6,15 +6,28 @@ import org.springframework.http.ResponseEntity;
 public record ErrorResponse(
         int status,
         String code,
-        String message
+        String msg
 ) {
+
+    public static ErrorResponse from(ErrorCode errorCode) {
+        return new ErrorResponse(
+                errorCode.getHttpStatus().value(),
+                errorCode.getCode(),
+                errorCode.getMessage()
+        );
+    }
+
     public static ResponseEntity<ErrorResponse> of(ErrorCode errorCode) {
         return ResponseEntity
                 .status(errorCode.getHttpStatus())
-                .body(new ErrorResponse(
-                        errorCode.getHttpStatus().value(),
-                        errorCode.getCode(),
-                        errorCode.getMessage()
-                ));
+                .body(ErrorResponse.from(errorCode));
     }
 }
+
+/* 형식 :
+{
+  "status": 401,
+  "code": "AUTH_401_001",
+  "message": "인증이 필요합니다."
+}
+ */

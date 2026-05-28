@@ -1,3 +1,8 @@
 spring:
   application:
-    name: won-invest-core-server
+    name: WON-Invest-Core-SERVER
+
+internal:
+  auth:
+    service-id: ${INTERNAL_SERVICE_ID}
+    api-key: ${INTERNAL_API_KEY}
