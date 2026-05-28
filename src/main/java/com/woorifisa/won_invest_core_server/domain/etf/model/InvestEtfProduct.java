@@ -4,14 +4,7 @@ package com.woorifisa.won_invest_core_server.domain.etf.model;
 
 import com.woorifisa.won_invest_core_server.domain.etf.model.type.EtfCurrency;
 import com.woorifisa.won_invest_core_server.domain.etf.model.type.EtfProductStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,7 +14,19 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(name = "invest_etf_product")
+@Table(
+        name = "invest_etf_product",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_invest_etf_product_provider_external_id",
+                        columnNames = {"external_provider", "external_etf_id"}
+                ),
+                @UniqueConstraint(
+                        name = "uk_invest_etf_product_provider_ticker",
+                        columnNames = {"external_provider", "ticker"}
+                )
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class InvestEtfProduct {
 
