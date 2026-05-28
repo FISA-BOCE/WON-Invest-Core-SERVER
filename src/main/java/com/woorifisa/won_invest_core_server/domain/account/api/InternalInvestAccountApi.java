@@ -34,7 +34,9 @@ public class InternalInvestAccountApi {
     ) {
         CreateInvestAccountResponse response =
                 investAccountService.openNewInvestAccount(request, userUuid);
-        return ApiResponse.of(SuccessStatus.INVEST_ACCOUNT_CREATED, response);
+        return ResponseEntity
+                .status(SuccessStatus.INVEST_ACCOUNT_CREATED.getHttpStatus())
+                .body(ApiResponse.of(SuccessStatus.INVEST_ACCOUNT_CREATED, response));
     }
 }
 
