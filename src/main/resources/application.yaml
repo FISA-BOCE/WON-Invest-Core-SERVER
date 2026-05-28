@@ -4,5 +4,5 @@ spring:
 
 internal:
   auth:
-    service-id: ${INTERNAL_SERVICE_ID:won-channel}
-    api-key: ${INTERNAL_API_KEY:local-dev-internal-key}
+    service-id: ${INTERNAL_SERVICE_ID}
+    api-key: ${INTERNAL_API_KEY}

@@ -1,14 +1,26 @@
+# 테스트용 H2 메모리 DB 설정
 spring:
   datasource:
+    # jdbc:h2:mem:testdb      | H2 DB를 메모리 모드로 실행하고, DB 이름은 testdb로 사용
+    # MODE=MySQL              | H2가 MySQL 문법과 비슷하게 동작하게 하는 설정
+    # DB_CLOSE_DELAY=-1       | DB 연결이 잠깐 끊겨도 메모리 DB를 바로 없애지 말아라 - 없으면 테스트 중간에 연결이 닫히면서 테이블이 사라지는 문제가 생길 수 있음
+    # DB_CLOSE_ON_EXIT=FALSE  | JVM이 종료될 때 H2가 자동으로 DB를 닫는 동작을 제어하는 설정
     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
+    driver-class-name: org.h2.Driver  # H2 DB 드라이버 쓰겠다
+    username: sa                      # H2 기본 계정이 sa / 비번은 비움
     password:
 
+# 테스트에서 JPA가 DB 테이블을 어떻게 만들고 SQL을 어떻게 보여줄지
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create-drop   # 테스트 시작할 때 Entity를 기준으로 테이블을 만들고, 테스트가 끝나면 지움
     properties:
       hibernate:
-        format_sql: true
-    show-sql: true
+        format_sql: true      # Hibernate가 출력하는 SQL을 보기 좋게 줄바꿈해서 보여줌
+    show-sql: true            # 테스트 실행 중 JPA가 실행하는 SQL을 콘솔에 보여줌
+
+# 내부 API 인증 테스트 설정
+internal:
+  auth:
+    service-id: won-channel
+    api-key: test-internal-api-key

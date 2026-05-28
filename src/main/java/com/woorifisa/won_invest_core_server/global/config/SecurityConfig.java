@@ -5,6 +5,7 @@ package com.woorifisa.won_invest_core_server.global.config;
 
 import com.woorifisa.won_invest_core_server.global.security.InternalApiAuthFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @RequiredArgsConstructor
+@EnableConfigurationProperties(InternalAuthProperties.class)
 public class SecurityConfig {
 
     // 내부 API 인증 검사 필터 주입
@@ -34,6 +36,7 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/health").permitAll()
                         // '/internal/**' 요청은 인증 필요
                         .requestMatchers("/internal/**").authenticated()
                         // 그 외 요청은 일단 허용

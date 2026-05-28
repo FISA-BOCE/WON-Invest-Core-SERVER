@@ -5,6 +5,7 @@ package com.woorifisa.won_invest_core_server.domain.etf.controller;
 import com.woorifisa.won_invest_core_server.domain.etf.dto.request.EtfProductUpsertRequest;
 import com.woorifisa.won_invest_core_server.domain.etf.dto.response.EtfProductUpsertResponse;
 import com.woorifisa.won_invest_core_server.domain.etf.service.InvestEtfProductService;
+import com.woorifisa.won_invest_core_server.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +26,9 @@ public class InternalEtfProductController {
         // Core의 ETF 상품 마스터 저장/수정 Service로 넘기고
         EtfProductUpsertResponse response = investEtfProductService.upsertEtfProduct(request);
         // 처리 결과를 JSON으로 돌려줌
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                ApiResponse.success("ETF 상품 마스터 동기화가 완료되었습니다.", response).data()
+        );
+
     }
 }
