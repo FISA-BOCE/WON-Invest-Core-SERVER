@@ -7,7 +7,7 @@ public record ApiResponse<T>(
         int status,
 
         String code,
-        String message,
+        String msg,
         T data
 ) {
     public static <T> ApiResponse<T> success(T data) {

@@ -191,7 +191,7 @@ class InternalEtfProductControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.code").value("COM_400_001"))
-                .andExpect(jsonPath("$.msg").value("요청값 검증에 실패했습니다."));
+                .andExpect(jsonPath("$.msg").value("요청 형식이 올바르지 않습니다."));
 
         assertThat(investEtfProductRepository.count()).isZero();
     }
