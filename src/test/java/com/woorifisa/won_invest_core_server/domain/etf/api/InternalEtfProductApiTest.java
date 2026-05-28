@@ -143,7 +143,7 @@ class InternalEtfProductApiTest {
                 .andExpect(status().isOk())
                 // 성공 응답이 공통 ApiResponse 형식인지 확인
                 .andExpect(jsonPath("$.status").value(200))
-                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.code").value("ETF_200_001"))
                 .andExpect(jsonPath("$.message").value("ETF 상품 마스터 동기화가 완료되었습니다."))
                 // 실제 data 안에 ETF 정보가 들어있는지 확인
                 .andExpect(jsonPath("$.data.etfId").exists())
