@@ -8,6 +8,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -40,9 +42,11 @@ public class InvestOrderLedger extends BaseTimeEntity {
     @JoinColumn(name = "invest_account_uuid", nullable = false)
     private InvestAccount investAccount;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "user_uuid", nullable = false, columnDefinition = "CHAR(36)")
     private UUID userUuid;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "invest_user_uuid", nullable = false, columnDefinition = "CHAR(36)")
     private UUID investUserUuid;
 

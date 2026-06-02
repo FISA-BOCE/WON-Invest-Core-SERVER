@@ -6,8 +6,16 @@ import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAcco
 import com.woorifisa.won_invest_core_server.domain.autoinvest.dto.request.AutoInvestExecutionRequest;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.dto.response.AutoInvestExecutionResponse;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.exception.enums.AutoInvestFailureCode;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfHolding;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfLedger;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestExecutionLedger;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestOrderLedger;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.enums.SweepEventType;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepEtfPriceProvider;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepFxRateProvider;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfHoldingRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfLedgerRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestExecutionLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestOrderLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
 import com.woorifisa.won_invest_core_server.domain.etf.repository.InvestEtfProductRepository;
@@ -17,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 
 @Service
 @Transactional
@@ -25,10 +34,16 @@ public class AutoInvestExecutionService {
 
     private static final int QUANTITY_SCALE = 4;
     private static final int MONEY_SCALE = 4;
+    private static final String ORDER_CURRENCY_USD = "USD";
 
     private final InvestAccountRepository accountRepository;
     private final InvestEtfProductRepository etfProductRepository;
     private final InvestOrderLedgerRepository orderLedgerRepository;
+    private final InvestExecutionLedgerRepository executionLedgerRepository;
+    private final InvestAccountEtfHoldingRepository holdingRepository;
+    private final InvestAccountEtfLedgerRepository etfLedgerRepository;
+    private final SweepFxRateProvider fxRateProvider;
+    private final SweepEtfPriceProvider etfPriceProvider;
 
     // 1. 이벤트 타입이 SWEEP_REQUESTED 인지 확인
     // 2. idempotencyKey로 이미 처리한 주문인지 확인
@@ -40,7 +55,16 @@ public class AutoInvestExecutionService {
         }
 
         return orderLedgerRepository.findByIdempotencyKey(request.idempotencyKey())
-                .map(order -> AutoInvestExecutionResponse.completed(order.getOrderId(), request.idempotencyKey()))
+                .map(order -> executionLedgerRepository.findByOrderOrderId(order.getOrderId())
+                        .map(execution -> AutoInvestExecutionResponse.completed(
+                                execution.getExecutionId(),
+                                request.idempotencyKey()
+                        ))
+                        .orElseGet(() -> AutoInvestExecutionResponse.failed(
+                                request.idempotencyKey(),
+                                AutoInvestFailureCode.EXECUTION_LEDGER_NOT_FOUND
+                        ))
+                )
                 .orElseGet(() -> executeNew(request));
     }
 
@@ -72,11 +96,16 @@ public class AutoInvestExecutionService {
         // 리워드 원화 금액으로 매수 수량 계산
         // 여기 수정해야함
         BigDecimal rewardKrw = BigDecimal.valueOf(request.krwAmount());
-        BigDecimal fxRate = new BigDecimal("1370.00");
-        BigDecimal priceUsd = new BigDecimal("375.40");
+        BigDecimal fxRate = fxRateProvider.getMonthlySweepUsdKrwRate(request.requestedAt());
+        BigDecimal priceUsd = etfPriceProvider.getMonthlySweepEtfExecutionPrice(etf.getTicker(), request.requestedAt());
 
         BigDecimal usdBudget = rewardKrw.divide(fxRate, 8, RoundingMode.DOWN);
         BigDecimal quantity = usdBudget.divide(priceUsd, QUANTITY_SCALE, RoundingMode.DOWN);
+
+        if (quantity.signum() <= 0) {
+            account.depositKrw(rewardKrw);
+            return AutoInvestExecutionResponse.failed(request.idempotencyKey(), AutoInvestFailureCode.INSUFFICIENT_AMOUNT);
+        }
 
         BigDecimal orderAmountUsd = quantity.multiply(priceUsd).setScale(MONEY_SCALE, RoundingMode.DOWN);
         BigDecimal usedKrw = orderAmountUsd.multiply(fxRate).setScale(0, RoundingMode.DOWN);
@@ -96,17 +125,40 @@ public class AutoInvestExecutionService {
                 quantity,
                 orderAmountUsd,
                 priceUsd,
-                "USD",
+                ORDER_CURRENCY_USD,
                 request.requestedAt()
         );
 
         orderLedgerRepository.save(order);
 
+        InvestExecutionLedger execution = InvestExecutionLedger.completed(
+                order,
+                account,
+                etf,
+                quantity,
+                priceUsd,
+                orderAmountUsd,
+                LocalDateTime.now()
+        );
+        executionLedgerRepository.save(execution);
+
+        InvestAccountEtfHolding holding = holdingRepository
+                .findByInvestAccountInvestAccountUuidAndEtfEtfId(
+                        account.getInvestAccountUuid(),
+                        etf.getEtfId()
+                )
+                .orElseGet(() -> InvestAccountEtfHolding.empty(account, etf));
+
+        holding.buy(quantity, priceUsd, orderAmountUsd);
+        holdingRepository.save(holding);
+
+        etfLedgerRepository.save(InvestAccountEtfLedger.buy(account, etf));
+
         // 주문 완료 처리
         order.complete();
 
         return AutoInvestExecutionResponse.completed(
-                order.getOrderId(),
+                execution.getExecutionId(),
                 request.idempotencyKey()
         );
 
