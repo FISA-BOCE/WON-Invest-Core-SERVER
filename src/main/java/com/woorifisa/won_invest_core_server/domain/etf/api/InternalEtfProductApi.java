@@ -51,12 +51,9 @@ public class InternalEtfProductApi {
     // Channel 서버의 ETF 동기화 요청을 받아서
     @PostMapping("/internal/etf-products/sync")
     public ResponseEntity<ApiResponse<EtfProductUpsertResponse>> upsertEtfProduct(
-            // Valid - 필수값이 없으면 Controller 진입 단계에서 바로 400으로 막힘
             @Valid @RequestBody EtfProductUpsertRequest request
     ) {
-        // Core의 ETF 상품 마스터 저장/수정 Service로 넘기고
         EtfProductUpsertResponse response = investEtfProductService.upsertEtfProduct(request);
-        // 처리 결과를 JSON으로 돌려줌
         return ResponseEntity
                 .status(SuccessStatus.ETF_PRODUCT_SYNCED.getHttpStatus())
                 .body(ApiResponse.of(SuccessStatus.ETF_PRODUCT_SYNCED, response));

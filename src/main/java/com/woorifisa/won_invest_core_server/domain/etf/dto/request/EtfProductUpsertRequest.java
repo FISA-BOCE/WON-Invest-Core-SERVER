@@ -1,7 +1,7 @@
 package com.woorifisa.won_invest_core_server.domain.etf.dto.request;
 
-import com.woorifisa.won_invest_core_server.domain.etf.model.type.EtfCurrency;
-import com.woorifisa.won_invest_core_server.domain.etf.model.type.EtfProductStatus;
+import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfCurrency;
+import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfProductStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

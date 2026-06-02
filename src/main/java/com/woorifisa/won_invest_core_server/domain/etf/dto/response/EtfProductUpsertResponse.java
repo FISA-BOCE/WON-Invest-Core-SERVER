@@ -1,8 +1,8 @@
 package com.woorifisa.won_invest_core_server.domain.etf.dto.response;
 
 import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
-import com.woorifisa.won_invest_core_server.domain.etf.model.type.EtfCurrency;
-import com.woorifisa.won_invest_core_server.domain.etf.model.type.EtfProductStatus;
+import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfCurrency;
+import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfProductStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "ETF 상품 마스터 동기화 응답")
