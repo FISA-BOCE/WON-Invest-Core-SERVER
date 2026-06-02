@@ -6,3 +6,6 @@ internal:
   auth:
     service-id: ${INTERNAL_SERVICE_ID}
     api-key: ${INTERNAL_API_KEY}
+
+crypto:
+  secret-key: ${CRYPTO_SECRET_KEY}

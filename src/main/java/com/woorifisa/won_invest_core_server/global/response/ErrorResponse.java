@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 public record ErrorResponse(
         int status,
         String code,
-        String msg
+        String message
 ) {
 
     public static ErrorResponse from(ErrorCode errorCode) {
@@ -23,11 +23,3 @@ public record ErrorResponse(
                 .body(ErrorResponse.from(errorCode));
     }
 }
-
-/* 형식 :
-{
-  "status": 401,
-  "code": "AUTH_401_001",
-  "message": "인증이 필요합니다."
-}
- */

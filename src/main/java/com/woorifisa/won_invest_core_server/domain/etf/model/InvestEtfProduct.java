@@ -2,8 +2,8 @@
 
 package com.woorifisa.won_invest_core_server.domain.etf.model;
 
-import com.woorifisa.won_invest_core_server.domain.etf.model.type.EtfCurrency;
-import com.woorifisa.won_invest_core_server.domain.etf.model.type.EtfProductStatus;
+import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfCurrency;
+import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfProductStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

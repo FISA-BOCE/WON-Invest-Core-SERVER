@@ -19,8 +19,6 @@ package com.woorifisa.won_invest_core_server.domain.etf.service;
 import com.woorifisa.won_invest_core_server.domain.etf.dto.request.EtfProductUpsertRequest;
 import com.woorifisa.won_invest_core_server.domain.etf.dto.response.EtfProductUpsertResponse;
 import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
-import com.woorifisa.won_invest_core_server.domain.etf.model.type.EtfCurrency;
-import com.woorifisa.won_invest_core_server.domain.etf.model.type.EtfProductStatus;
 import com.woorifisa.won_invest_core_server.domain.etf.repository.InvestEtfProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;

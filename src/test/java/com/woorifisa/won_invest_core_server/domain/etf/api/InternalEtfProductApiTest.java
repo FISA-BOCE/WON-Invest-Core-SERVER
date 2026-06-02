@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @SpringBootTest
 // MockMvc - 실제 서버를 브라우저처럼 띄우지 않아도, 테스트 코드 안에서 HTTP 요청을 보낼 수 있게 해주는 도구
 @AutoConfigureMockMvc
-class InternalEtfProductControllerTest {
+class InternalEtfProductApiTest {
 
     private static final String INTERNAL_SYNC_URL = "/internal/etf-products/sync";
     private static final String SERVICE_ID_HEADER = "X-Service-ID";
@@ -73,7 +73,7 @@ class InternalEtfProductControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.code").value("AUTH_401_001"))
-                .andExpect(jsonPath("$.msg").value("인증이 필요합니다."));
+                .andExpect(jsonPath("$.message").value("인증이 필요합니다."));
 
         // DB에 아무것도 저장되지 않았는지 확인
         assertThat(investEtfProductRepository.count()).isZero();
@@ -108,7 +108,7 @@ class InternalEtfProductControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.code").value("AUTH_401_001"))
-                .andExpect(jsonPath("$.msg").value("인증이 필요합니다."));
+                .andExpect(jsonPath("$.message").value("인증이 필요합니다."));
 
         // DB에 아무것도 저장되지 않았는지 확인
         assertThat(investEtfProductRepository.count()).isZero();
@@ -143,8 +143,8 @@ class InternalEtfProductControllerTest {
                 .andExpect(status().isOk())
                 // 성공 응답이 공통 ApiResponse 형식인지 확인
                 .andExpect(jsonPath("$.status").value(200))
-                .andExpect(jsonPath("$.code").value("SUCCESS"))
-                .andExpect(jsonPath("$.msg").value("ETF 상품 마스터 동기화가 완료되었습니다."))
+                .andExpect(jsonPath("$.code").value("ETF_200_001"))
+                .andExpect(jsonPath("$.message").value("ETF 상품 마스터 동기화가 완료되었습니다."))
                 // 실제 data 안에 ETF 정보가 들어있는지 확인
                 .andExpect(jsonPath("$.data.etfId").exists())
                 .andExpect(jsonPath("$.data.externalProvider").value("KIS"))
@@ -191,7 +191,7 @@ class InternalEtfProductControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.code").value("COM_400_001"))
-                .andExpect(jsonPath("$.msg").value("요청값 검증에 실패했습니다."));
+                .andExpect(jsonPath("$.message").value("요청 형식이 올바르지 않습니다."));
 
         assertThat(investEtfProductRepository.count()).isZero();
     }

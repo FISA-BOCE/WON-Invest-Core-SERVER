@@ -1,4 +1,4 @@
-package com.woorifisa.won_invest_core_server.domain.etf.model.type;
+package com.woorifisa.won_invest_core_server.domain.etf.model.enums;
 
 public enum EtfCurrency {
 
