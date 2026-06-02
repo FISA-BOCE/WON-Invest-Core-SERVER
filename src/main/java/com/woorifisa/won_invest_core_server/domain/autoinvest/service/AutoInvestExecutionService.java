@@ -94,7 +94,6 @@ public class AutoInvestExecutionService {
         }
 
         // 리워드 원화 금액으로 매수 수량 계산
-        // 여기 수정해야함
         BigDecimal rewardKrw = BigDecimal.valueOf(request.krwAmount());
         BigDecimal fxRate = fxRateProvider.getMonthlySweepUsdKrwRate(request.requestedAt());
         BigDecimal priceUsd = etfPriceProvider.getMonthlySweepEtfExecutionPrice(etf.getTicker(), request.requestedAt());
