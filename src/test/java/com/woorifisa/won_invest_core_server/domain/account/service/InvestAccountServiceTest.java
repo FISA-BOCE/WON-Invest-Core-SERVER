@@ -64,6 +64,8 @@ class InvestAccountServiceTest {
         given(cryptoUtil.encrypt("hong@example.com")).willReturn("enc_email");
         given(passwordEncoder.encode("pass1234!")).willReturn("$2a$10$dummy_bcrypt_hash");
         given(investUserRepository.save(any(InvestUser.class))).willAnswer(inv -> inv.getArgument(0));
+        given(investUserRepository.existsById(any())).willReturn(true);
+        given(investAccountRepository.existsById(any())).willReturn(true);
 
         // when
         CreateInvestAccountResponse response = investAccountService.openNewInvestAccount(request, USER_UUID);
@@ -77,6 +79,27 @@ class InvestAccountServiceTest {
         assertThat(response.openedAt()).isNotNull();
 
         verify(investAccountRepository).saveAndFlush(any());
+    }
+
+    @Test
+    @DisplayName("계좌 원본 정보 저장을 확인할 수 없으면 ACCOUNT_PERSISTENCE_FAILED 예외")
+    void openNewInvestAccount_persistenceFailed() {
+        // given
+        CreateInvestAccountRequest request = validRequest();
+
+        given(investUserRepository.findByUserUuid(USER_UUID)).willReturn(Optional.empty());
+        given(cryptoUtil.encrypt("010-1234-5678")).willReturn("enc_tel");
+        given(cryptoUtil.encrypt("hong@example.com")).willReturn("enc_email");
+        given(passwordEncoder.encode("pass1234!")).willReturn("$2a$10$dummy_bcrypt_hash");
+        given(investUserRepository.save(any(InvestUser.class))).willAnswer(inv -> inv.getArgument(0));
+        given(investUserRepository.existsById(any())).willReturn(true);
+        given(investAccountRepository.existsById(any())).willReturn(false);
+
+        // when / then
+        assertThatThrownBy(() -> investAccountService.openNewInvestAccount(request, USER_UUID))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode())
+                        .isEqualTo(InvestAccountErrorCode.ACCOUNT_PERSISTENCE_FAILED));
     }
 
     @Test
