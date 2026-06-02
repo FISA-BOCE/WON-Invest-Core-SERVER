@@ -23,11 +23,3 @@ public record ErrorResponse(
                 .body(ErrorResponse.from(errorCode));
     }
 }
-
-/* 형식 :
-{
-  "status": 401,
-  "code": "AUTH_401_001",
-  "message": "인증이 필요합니다."
-}
- */
