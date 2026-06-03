@@ -44,7 +44,7 @@ public class AutoInvestExecutionService {
 
     // 1. 이벤트 타입이 SWEEP_REQUESTED 인지 확인
     // 2. idempotencyKey로 이미 처리한 주문인지 확인
-    // 3. 이미 있으면 기존 결과 반환  > 기존 결과 반환 : 이거 좀 더 구체화야할듯
+    // 3. 이미 있으면 기존 결과 반환
     // 4. 없으면 executeNew(request) 호출
     public AutoInvestExecutionResponse execute(AutoInvestExecutionRequest request) {
         log.info(
