@@ -12,6 +12,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -79,7 +80,7 @@ public class InvestExecutionLedger extends BaseTimeEntity {
         execution.executionQuantity = quantity;
         execution.executionPrice = executionPrice;
         execution.executionAmount = executionAmount;
-        execution.executedAt = executedAt != null ? executedAt : LocalDateTime.now();
+        execution.executedAt = Objects.requireNonNull(executedAt, "executedAt must not be null");
         return execution;
     }
 }

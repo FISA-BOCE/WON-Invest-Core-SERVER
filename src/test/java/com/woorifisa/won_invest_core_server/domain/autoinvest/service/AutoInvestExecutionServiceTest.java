@@ -163,6 +163,7 @@ class AutoInvestExecutionServiceTest {
         assertThat(savedSweepLedger.getOrderQuantity()).isEqualByComparingTo("0.0194");
         assertThat(savedSweepLedger.getUsedKrwAmount()).isEqualByComparingTo("9977");
         assertThat(savedSweepLedger.getRefundKrwAmount()).isEqualByComparingTo("23");
+        assertThat(savedSweepLedger.getCompletedAt()).isEqualTo(savedExecution.getExecutedAt());
 
         verify(etfLedgerRepository).save(any(InvestAccountEtfLedger.class));
     }
@@ -186,6 +187,7 @@ class AutoInvestExecutionServiceTest {
                 request.requestedAt()
         );
         existingOrder.complete();
+        LocalDateTime completedAt = request.requestedAt().plusMinutes(1);
         InvestExecutionLedger existingExecution = InvestExecutionLedger.completed(
                 existingOrder,
                 account,
@@ -193,7 +195,7 @@ class AutoInvestExecutionServiceTest {
                 new BigDecimal("0.0194"),
                 new BigDecimal("375.40"),
                 new BigDecimal("7.2815"),
-                request.requestedAt()
+                completedAt
         );
         AutoInvestSweepLedger existingLedger = AutoInvestSweepLedger.requested(request);
         existingLedger.complete(
@@ -203,7 +205,8 @@ class AutoInvestExecutionServiceTest {
                 new BigDecimal("375.40"),
                 new BigDecimal("0.0194"),
                 new BigDecimal("9975"),
-                new BigDecimal("25")
+                new BigDecimal("25"),
+                completedAt
         );
 
         given(autoInvestSweepLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
@@ -243,6 +246,7 @@ class AutoInvestExecutionServiceTest {
                 request.requestedAt()
         );
         existingOrder.complete();
+        LocalDateTime completedAt = request.requestedAt().plusMinutes(1);
         InvestExecutionLedger existingExecution = InvestExecutionLedger.completed(
                 existingOrder,
                 account,
@@ -250,7 +254,7 @@ class AutoInvestExecutionServiceTest {
                 new BigDecimal("0.0194"),
                 new BigDecimal("375.40"),
                 new BigDecimal("7.2815"),
-                request.requestedAt()
+                completedAt
         );
         AutoInvestSweepLedger existingLedger = AutoInvestSweepLedger.requested(request);
         existingLedger.complete(
@@ -260,7 +264,8 @@ class AutoInvestExecutionServiceTest {
                 new BigDecimal("375.40"),
                 new BigDecimal("0.0194"),
                 new BigDecimal("9975"),
-                new BigDecimal("25")
+                new BigDecimal("25"),
+                completedAt
         );
 
         given(autoInvestSweepLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))

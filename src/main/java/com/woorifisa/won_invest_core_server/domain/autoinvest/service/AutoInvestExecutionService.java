@@ -147,6 +147,8 @@ public class AutoInvestExecutionService {
 
         orderLedgerRepository.save(order);
 
+        LocalDateTime processedAt = LocalDateTime.now();
+
         InvestExecutionLedger execution = InvestExecutionLedger.completed(
                 order,
                 account,
@@ -154,7 +156,7 @@ public class AutoInvestExecutionService {
                 quantity,
                 priceUsd,
                 orderAmountUsd,
-                LocalDateTime.now()
+                processedAt
         );
         executionLedgerRepository.save(execution);
 
@@ -179,7 +181,8 @@ public class AutoInvestExecutionService {
                 priceUsd,
                 quantity,
                 usedKrw,
-                remainingKrw
+                remainingKrw,
+                processedAt
         );
 
         log.info(
@@ -225,7 +228,8 @@ public class AutoInvestExecutionService {
             AutoInvestExecutionRequest request,
             AutoInvestFailureCode failureCode
     ) {
-        ledger.fail(failureCode);
+        LocalDateTime failedAt = LocalDateTime.now();
+        ledger.fail(failureCode, failedAt);
 
         log.warn(
                 "자동투자 스윕 실행 실패. correlationId={}, idempotencyKey={}, sweepExecutionId={}, sweepRequestId={}, failureCode={}, failureMessage={}",

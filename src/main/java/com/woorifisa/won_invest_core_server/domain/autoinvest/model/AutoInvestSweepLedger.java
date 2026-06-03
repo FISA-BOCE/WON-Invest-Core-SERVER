@@ -122,11 +122,11 @@ public class AutoInvestSweepLedger extends BaseTimeEntity {
         return ledger;
     }
 
-    public void fail(AutoInvestFailureCode failureCode) {
+    public void fail(AutoInvestFailureCode failureCode, LocalDateTime completedAt) {
         this.status = AutoInvestExecutionStatus.FAILED;
         this.failureCode = failureCode.getCode();
         this.failureMessage = failureCode.getMessage();
-        this.completedAt = LocalDateTime.now();
+        this.completedAt = completedAt;
     }
 
     public void complete(
@@ -136,7 +136,8 @@ public class AutoInvestSweepLedger extends BaseTimeEntity {
             BigDecimal etfPriceSnapshot,
             BigDecimal orderQuantity,
             BigDecimal usedKrwAmount,
-            BigDecimal refundKrwAmount
+            BigDecimal refundKrwAmount,
+            LocalDateTime completedAt
     ) {
         this.status = AutoInvestExecutionStatus.COMPLETED;
         this.failureCode = null;
@@ -148,6 +149,6 @@ public class AutoInvestSweepLedger extends BaseTimeEntity {
         this.orderQuantity = orderQuantity;
         this.usedKrwAmount = usedKrwAmount;
         this.refundKrwAmount = refundKrwAmount;
-        this.completedAt = LocalDateTime.now();
+        this.completedAt = completedAt;
     }
 }

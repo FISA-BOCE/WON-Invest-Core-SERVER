@@ -13,6 +13,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -103,7 +104,7 @@ public class InvestOrderLedger extends BaseTimeEntity {
         order.orderQuantity = quantity;
         order.orderPriceSnapshot = priceSnapshot;
         order.orderStatus = OrderStatus.REQUESTED;
-        order.orderedAt = orderedAt != null ? orderedAt : LocalDateTime.now();
+        order.orderedAt = Objects.requireNonNull(orderedAt, "orderedAt must not be null");
         return order;
     }
 
