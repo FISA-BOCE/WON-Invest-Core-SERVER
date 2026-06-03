@@ -121,7 +121,6 @@ public class AutoInvestExecutionService {
         BigDecimal quantity = usdBudget.divide(priceUsd, QUANTITY_SCALE, RoundingMode.DOWN);
 
         if (quantity.signum() <= 0) {
-            account.depositKrw(rewardKrw);
             return fail(ledger, request, AutoInvestFailureCode.INSUFFICIENT_AMOUNT);
         }
 

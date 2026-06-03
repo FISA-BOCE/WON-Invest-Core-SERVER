@@ -406,6 +406,39 @@ class AutoInvestExecutionServiceTest {
     }
 
     @Test
+    @DisplayName("매수 가능 수량이 0이면 KRW 잔액을 적립하지 않고 실패 응답을 반환한다")
+    void executeInsufficientAmountDoesNotDepositKrw() {
+        // given
+        AutoInvestExecutionRequest request = validRequest();
+        InvestAccount account = activeAccount();
+
+        given(autoInvestSweepLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
+                .willReturn(Optional.empty());
+        given(autoInvestSweepLedgerRepository.save(any(AutoInvestSweepLedger.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+        given(accountRepository.findByUserUuid(USER_UUID))
+                .willReturn(Optional.of(account));
+        given(etfProductRepository.findById(request.etfId()))
+                .willReturn(Optional.of(activeEtf()));
+        given(fxRateProvider.getMonthlySweepUsdKrwRate(request.requestedAt()))
+                .willReturn(new BigDecimal("1370.00"));
+        given(etfPriceProvider.getMonthlySweepEtfExecutionPrice("VOO", request.requestedAt()))
+                .willReturn(new BigDecimal("1000000.00"));
+
+        // when
+        AutoInvestExecutionResponse response = service.execute(request);
+
+        // then
+        assertThat(response.status()).isEqualTo(AutoInvestExecutionStatus.FAILED);
+        assertThat(response.failureCode()).isEqualTo("SWEEP_FAIL_008");
+        assertThat(account.getKrwBalanceAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+        verify(orderLedgerRepository, never()).save(any());
+        verify(executionLedgerRepository, never()).save(any());
+        verify(holdingRepository, never()).save(any());
+        verify(etfLedgerRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("첫 ETF 매수의 평균 매수가는 절사된 매수 금액이 아니라 체결가 기준으로 계산한다")
     void firstBuyAveragePriceUsesExecutionPrice() {
         // given
