@@ -14,6 +14,7 @@ import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.*;
 import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
 import com.woorifisa.won_invest_core_server.domain.etf.repository.InvestEtfProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class AutoInvestExecutionService {
 
     private static final int QUANTITY_SCALE = 4;
@@ -45,8 +47,27 @@ public class AutoInvestExecutionService {
     // 3. 이미 있으면 기존 결과 반환  > 기존 결과 반환 : 이거 좀 더 구체화야할듯
     // 4. 없으면 executeNew(request) 호출
     public AutoInvestExecutionResponse execute(AutoInvestExecutionRequest request) {
+        log.info(
+                "자동투자 스윕 실행 요청 수신. correlationId={}, idempotencyKey={}, sweepRequestId={}, pointLedgerId={}, etfId={}",
+                request.correlationId(),
+                request.idempotencyKey(),
+                request.sweepRequestId(),
+                request.pointLedgerId(),
+                request.etfId()
+        );
+
         return autoInvestRequestLedgerRepository.findByIdempotencyKey(request.idempotencyKey())
-                .map(AutoInvestExecutionResponse::from)
+                .map(ledger -> {
+                    log.info(
+                            "자동투자 스윕 중복 요청으로 기존 결과를 반환합니다. correlationId={}, originalCorrelationId={}, idempotencyKey={}, sweepExecutionId={}, status={}",
+                            request.correlationId(),
+                            ledger.getCorrelationId(),
+                            request.idempotencyKey(),
+                            ledger.getSweepExecutionId(),
+                            ledger.getStatus()
+                    );
+                    return AutoInvestExecutionResponse.from(ledger);
+                })
                 .orElseGet(() -> executeNew(request));
     }
 
@@ -56,32 +77,27 @@ public class AutoInvestExecutionService {
                 autoInvestRequestLedgerRepository.save(AutoInvestRequestLedger.requested(request));
 
         if (!SweepEventType.SWEEP_REQUESTED.name().equals(request.eventType())) {
-            ledger.fail(AutoInvestFailureCode.INVALID_EVENT_TYPE);
-            return AutoInvestExecutionResponse.from(ledger);
+            return fail(ledger, request, AutoInvestFailureCode.INVALID_EVENT_TYPE);
         }
 
         InvestAccount account = accountRepository.findByUserUuid(request.userUuid()).orElse(null);
 
         if (account == null) {
-            ledger.fail(AutoInvestFailureCode.INVEST_ACCOUNT_NOT_FOUND);
-            return AutoInvestExecutionResponse.from(ledger);
+            return fail(ledger, request, AutoInvestFailureCode.INVEST_ACCOUNT_NOT_FOUND);
         }
 
         if (!AccountStatus.ACTIVE.equals(account.getAccountStatus())) {
-            ledger.fail(AutoInvestFailureCode.INVEST_ACCOUNT_NOT_ACTIVE);
-            return AutoInvestExecutionResponse.from(ledger);
+            return fail(ledger, request, AutoInvestFailureCode.INVEST_ACCOUNT_NOT_ACTIVE);
         }
 
         InvestEtfProduct etf = etfProductRepository.findById(request.etfId()).orElse(null);
 
         if (etf == null) {
-            ledger.fail(AutoInvestFailureCode.ETF_NOT_FOUND);
-            return AutoInvestExecutionResponse.from(ledger);
+            return fail(ledger, request, AutoInvestFailureCode.ETF_NOT_FOUND);
         }
 
         if (!etf.canProvideAutoInvestment()) {
-            ledger.fail(AutoInvestFailureCode.ETF_NOT_AVAILABLE);
-            return AutoInvestExecutionResponse.from(ledger);
+            return fail(ledger, request, AutoInvestFailureCode.ETF_NOT_AVAILABLE);
         }
 
         BigDecimal rewardKrw = BigDecimal.valueOf(request.krwAmount());
@@ -93,8 +109,7 @@ public class AutoInvestExecutionService {
 
         if (quantity.signum() <= 0) {
             account.depositKrw(rewardKrw);
-            ledger.fail(AutoInvestFailureCode.INSUFFICIENT_AMOUNT);
-            return AutoInvestExecutionResponse.from(ledger);
+            return fail(ledger, request, AutoInvestFailureCode.INSUFFICIENT_AMOUNT);
         }
 
         BigDecimal orderAmountUsd = quantity.multiply(priceUsd).setScale(MONEY_SCALE, RoundingMode.DOWN);
@@ -152,6 +167,38 @@ public class AutoInvestExecutionService {
                 quantity,
                 usedKrw,
                 remainingKrw
+        );
+
+        log.info(
+                "자동투자 스윕 실행 완료. correlationId={}, idempotencyKey={}, sweepExecutionId={}, orderId={}, executionLedgerId={}, quantity={}, usedKrw={}, refundKrw={}",
+                request.correlationId(),
+                request.idempotencyKey(),
+                ledger.getSweepExecutionId(),
+                order.getOrderId(),
+                execution.getExecutionId(),
+                quantity,
+                usedKrw,
+                remainingKrw
+        );
+
+        return AutoInvestExecutionResponse.from(ledger);
+    }
+
+    private AutoInvestExecutionResponse fail(
+            AutoInvestRequestLedger ledger,
+            AutoInvestExecutionRequest request,
+            AutoInvestFailureCode failureCode
+    ) {
+        ledger.fail(failureCode);
+
+        log.warn(
+                "자동투자 스윕 실행 실패. correlationId={}, idempotencyKey={}, sweepExecutionId={}, sweepRequestId={}, failureCode={}, failureMessage={}",
+                request.correlationId(),
+                request.idempotencyKey(),
+                ledger.getSweepExecutionId(),
+                request.sweepRequestId(),
+                failureCode.getCode(),
+                failureCode.getMessage()
         );
 
         return AutoInvestExecutionResponse.from(ledger);
