@@ -6,6 +6,7 @@ import com.woorifisa.won_invest_core_server.domain.account.model.enums.AccountSt
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.dto.request.AutoInvestExecutionRequest;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.dto.response.AutoInvestExecutionResponse;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.model.AutoInvestRequestLedger;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfHolding;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfLedger;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestExecutionLedger;
@@ -14,6 +15,7 @@ import com.woorifisa.won_invest_core_server.domain.autoinvest.model.enums.AutoIn
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.enums.OrderStatus;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepEtfPriceProvider;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepFxRateProvider;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestRequestLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfHoldingRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestExecutionLedgerRepository;
@@ -67,6 +69,9 @@ class AutoInvestExecutionServiceTest {
     @Mock
     private SweepEtfPriceProvider etfPriceProvider;
 
+    @Mock
+    private AutoInvestRequestLedgerRepository autoInvestRequestLedgerRepository;
+
     @InjectMocks
     private AutoInvestExecutionService service;
 
@@ -84,8 +89,10 @@ class AutoInvestExecutionServiceTest {
         InvestAccount account = activeAccount();
         InvestEtfProduct etf = activeEtf();
 
-        given(orderLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
+        given(autoInvestRequestLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
                 .willReturn(Optional.empty());
+        given(autoInvestRequestLedgerRepository.save(any(AutoInvestRequestLedger.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
         given(accountRepository.findByUserUuid(USER_UUID))
                 .willReturn(Optional.of(account));
         given(etfProductRepository.findById(request.etfId()))
@@ -141,22 +148,36 @@ class AutoInvestExecutionServiceTest {
         InvestAccountEtfHolding savedHolding = holdingCaptor.getValue();
         assertThat(savedHolding.getTicker()).isEqualTo("VOO");
         assertThat(savedHolding.getHoldingQuantity()).isEqualByComparingTo("0.0194");
-        assertThat(savedHolding.getAverageBuyPrice()).isEqualByComparingTo("375.3969");
+        assertThat(savedHolding.getAverageBuyPrice()).isEqualByComparingTo("375.4000");
         assertThat(savedHolding.getTotalBuyAmount()).isEqualByComparingTo("7.2827");
+
+        ArgumentCaptor<AutoInvestRequestLedger> requestLedgerCaptor = ArgumentCaptor.forClass(AutoInvestRequestLedger.class);
+        verify(autoInvestRequestLedgerRepository).save(requestLedgerCaptor.capture());
+        AutoInvestRequestLedger savedRequestLedger = requestLedgerCaptor.getValue();
+        assertThat(savedRequestLedger.getStatus()).isEqualTo(AutoInvestExecutionStatus.COMPLETED);
+        assertThat(savedRequestLedger.getIdempotencyKey()).isEqualTo(request.idempotencyKey());
+        assertThat(savedRequestLedger.getCorrelationId()).isEqualTo(request.correlationId());
+        assertThat(savedRequestLedger.getFxRateSnapshot()).isEqualByComparingTo("1370.00");
+        assertThat(savedRequestLedger.getEtfPriceSnapshot()).isEqualByComparingTo("375.40");
+        assertThat(savedRequestLedger.getOrderQuantity()).isEqualByComparingTo("0.0194");
+        assertThat(savedRequestLedger.getUsedKrwAmount()).isEqualByComparingTo("9977");
+        assertThat(savedRequestLedger.getRefundKrwAmount()).isEqualByComparingTo("23");
 
         verify(etfLedgerRepository).save(any(InvestAccountEtfLedger.class));
     }
 
     @Test
-    @DisplayName("같은 idempotencyKey로 이미 주문이 있으면 새 주문을 저장하지 않는다")
-    void executeDuplicateReturnsExistingOrder() {
+    @DisplayName("같은 idempotencyKey로 이미 자동투자 요청 원장이 있으면 기존 결과를 반환한다")
+    void executeDuplicateReturnsExistingRequestLedger() {
         // given
         AutoInvestExecutionRequest request = validRequest();
+        InvestAccount account = activeAccount();
+        InvestEtfProduct etf = activeEtf();
         InvestOrderLedger existingOrder = InvestOrderLedger.requestedSweepBuy(
                 request.idempotencyKey(),
                 request.sweepRequestId(),
-                activeAccount(),
-                activeEtf(),
+                account,
+                etf,
                 new BigDecimal("0.0194"),
                 new BigDecimal("7.2815"),
                 new BigDecimal("375.40"),
@@ -164,21 +185,40 @@ class AutoInvestExecutionServiceTest {
                 request.requestedAt()
         );
         existingOrder.complete();
+        InvestExecutionLedger existingExecution = InvestExecutionLedger.completed(
+                existingOrder,
+                account,
+                etf,
+                new BigDecimal("0.0194"),
+                new BigDecimal("375.40"),
+                new BigDecimal("7.2815"),
+                request.requestedAt()
+        );
+        AutoInvestRequestLedger existingLedger = AutoInvestRequestLedger.requested(request);
+        existingLedger.complete(
+                existingOrder,
+                existingExecution,
+                new BigDecimal("1370.00"),
+                new BigDecimal("375.40"),
+                new BigDecimal("0.0194"),
+                new BigDecimal("9975"),
+                new BigDecimal("25")
+        );
 
-        given(orderLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
-                .willReturn(Optional.of(existingOrder));
-        given(executionLedgerRepository.findByOrderOrderId(existingOrder.getOrderId()))
-                .willReturn(Optional.empty());
+        given(autoInvestRequestLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
+                .willReturn(Optional.of(existingLedger));
 
         // when
         AutoInvestExecutionResponse response = service.execute(request);
 
         // then
         assertThat(response.status()).isEqualTo(AutoInvestExecutionStatus.COMPLETED);
+        assertThat(response.idempotencyKey()).isEqualTo(request.idempotencyKey());
+        verify(autoInvestRequestLedgerRepository, never()).save(any());
         verify(orderLedgerRepository, never()).save(any());
         verify(accountRepository, never()).findByUserUuid(any());
         verify(etfProductRepository, never()).findById(any());
-        verify(executionLedgerRepository).findByOrderOrderId(existingOrder.getOrderId());
+        verify(executionLedgerRepository, never()).findByOrderOrderId(any());
         verify(holdingRepository, never()).save(any());
         verify(etfLedgerRepository, never()).save(any());
     }
@@ -189,8 +229,10 @@ class AutoInvestExecutionServiceTest {
         // given
         AutoInvestExecutionRequest request = validRequest();
 
-        given(orderLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
+        given(autoInvestRequestLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
                 .willReturn(Optional.empty());
+        given(autoInvestRequestLedgerRepository.save(any(AutoInvestRequestLedger.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
         given(accountRepository.findByUserUuid(USER_UUID))
                 .willReturn(Optional.empty());
 
@@ -200,6 +242,7 @@ class AutoInvestExecutionServiceTest {
         // then
         assertThat(response.status()).isEqualTo(AutoInvestExecutionStatus.FAILED);
         assertThat(response.failureCode()).isEqualTo("SWEEP_FAIL_002");
+        verify(autoInvestRequestLedgerRepository).save(any(AutoInvestRequestLedger.class));
         verify(orderLedgerRepository, never()).save(any());
         verify(executionLedgerRepository, never()).save(any());
         verify(holdingRepository, never()).save(any());
@@ -212,8 +255,10 @@ class AutoInvestExecutionServiceTest {
         // given
         AutoInvestExecutionRequest request = validRequest();
 
-        given(orderLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
+        given(autoInvestRequestLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
                 .willReturn(Optional.empty());
+        given(autoInvestRequestLedgerRepository.save(any(AutoInvestRequestLedger.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
         given(accountRepository.findByUserUuid(USER_UUID))
                 .willReturn(Optional.of(activeAccount()));
         given(etfProductRepository.findById(request.etfId()))
@@ -225,10 +270,30 @@ class AutoInvestExecutionServiceTest {
         // then
         assertThat(response.status()).isEqualTo(AutoInvestExecutionStatus.FAILED);
         assertThat(response.failureCode()).isEqualTo("SWEEP_FAIL_005");
+        verify(autoInvestRequestLedgerRepository).save(any(AutoInvestRequestLedger.class));
         verify(orderLedgerRepository, never()).save(any());
         verify(executionLedgerRepository, never()).save(any());
         verify(holdingRepository, never()).save(any());
         verify(etfLedgerRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("첫 ETF 매수의 평균 매수가는 절사된 매수 금액이 아니라 체결가 기준으로 계산한다")
+    void firstBuyAveragePriceUsesExecutionPrice() {
+        // given
+        InvestAccountEtfHolding holding = InvestAccountEtfHolding.empty(activeAccount(), activeEtf());
+
+        // when
+        holding.buy(
+                new BigDecimal("0.0177"),
+                new BigDecimal("375.40"),
+                new BigDecimal("6.6445")
+        );
+
+        // then
+        assertThat(holding.getHoldingQuantity()).isEqualByComparingTo("0.0177");
+        assertThat(holding.getTotalBuyAmount()).isEqualByComparingTo("6.6445");
+        assertThat(holding.getAverageBuyPrice()).isEqualByComparingTo("375.4000");
     }
 
     private AutoInvestExecutionRequest validRequest() {
