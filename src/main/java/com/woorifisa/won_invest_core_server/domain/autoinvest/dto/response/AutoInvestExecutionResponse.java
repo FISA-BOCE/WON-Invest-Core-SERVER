@@ -1,6 +1,6 @@
 package com.woorifisa.won_invest_core_server.domain.autoinvest.dto.response;
 
-import com.woorifisa.won_invest_core_server.domain.autoinvest.exception.enums.AutoInvestFailureCode;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.model.AutoInvestExecutionLedger;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.enums.AutoInvestExecutionStatus;
 
 public record AutoInvestExecutionResponse(
@@ -10,23 +10,13 @@ public record AutoInvestExecutionResponse(
         String failureCode,
         String failureMessage
 ) {
-    public static AutoInvestExecutionResponse completed(Long executionId, String idempotencyKey) {
+    public static AutoInvestExecutionResponse from(AutoInvestExecutionLedger ledger) {
         return new AutoInvestExecutionResponse(
-                executionId,
-                idempotencyKey,
-                AutoInvestExecutionStatus.COMPLETED,
-                null,
-                null
-        );
-    }
-
-    public static AutoInvestExecutionResponse failed(String idempotencyKey, AutoInvestFailureCode failureCode) {
-        return new AutoInvestExecutionResponse(
-                null,
-                idempotencyKey,
-                AutoInvestExecutionStatus.FAILED,
-                failureCode.getCode(),
-                failureCode.getMessage()
+                ledger.getSweepExecutionId(),
+                ledger.getIdempotencyKey(),
+                ledger.getStatus(),
+                ledger.getFailureCode(),
+                ledger.getFailureMessage()
         );
     }
 }

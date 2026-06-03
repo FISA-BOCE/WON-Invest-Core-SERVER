@@ -6,17 +6,11 @@ import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAcco
 import com.woorifisa.won_invest_core_server.domain.autoinvest.dto.request.AutoInvestExecutionRequest;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.dto.response.AutoInvestExecutionResponse;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.exception.enums.AutoInvestFailureCode;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfHolding;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfLedger;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestExecutionLedger;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestOrderLedger;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.model.*;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.enums.SweepEventType;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepEtfPriceProvider;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepFxRateProvider;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfHoldingRepository;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfLedgerRepository;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestExecutionLedgerRepository;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestOrderLedgerRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.*;
 import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
 import com.woorifisa.won_invest_core_server.domain.etf.repository.InvestEtfProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,56 +38,52 @@ public class AutoInvestExecutionService {
     private final InvestAccountEtfLedgerRepository etfLedgerRepository;
     private final SweepFxRateProvider fxRateProvider;
     private final SweepEtfPriceProvider etfPriceProvider;
+    private final AutoInvestExecutionLedgerRepository autoInvestExecutionLedgerRepository;
 
     // 1. 이벤트 타입이 SWEEP_REQUESTED 인지 확인
     // 2. idempotencyKey로 이미 처리한 주문인지 확인
     // 3. 이미 있으면 기존 결과 반환  > 기존 결과 반환 : 이거 좀 더 구체화야할듯
     // 4. 없으면 executeNew(request) 호출
     public AutoInvestExecutionResponse execute(AutoInvestExecutionRequest request) {
-        if (!SweepEventType.SWEEP_REQUESTED.name().equals(request.eventType())) {
-            return AutoInvestExecutionResponse.failed(request.idempotencyKey(), AutoInvestFailureCode.INVALID_EVENT_TYPE);
-        }
-
-        return orderLedgerRepository.findByIdempotencyKey(request.idempotencyKey())
-                .map(order -> executionLedgerRepository.findByOrderOrderId(order.getOrderId())
-                        .map(execution -> AutoInvestExecutionResponse.completed(
-                                execution.getExecutionId(),
-                                request.idempotencyKey()
-                        ))
-                        .orElseGet(() -> AutoInvestExecutionResponse.failed(
-                                request.idempotencyKey(),
-                                AutoInvestFailureCode.EXECUTION_LEDGER_NOT_FOUND
-                        ))
-                )
+        return autoInvestExecutionLedgerRepository.findByIdempotencyKey(request.idempotencyKey())
+                .map(AutoInvestExecutionResponse::from)
                 .orElseGet(() -> executeNew(request));
     }
 
     // 중복이 아니라 진짜 처음 온 요청일 때 실행됨
     private AutoInvestExecutionResponse executeNew(AutoInvestExecutionRequest request) {
-        InvestAccount account = accountRepository.findByUserUuid(request.userUuid()).orElse(null);
+        AutoInvestExecutionLedger ledger =
+                autoInvestExecutionLedgerRepository.save(AutoInvestExecutionLedger.requested(request));
 
-        // 증권 계좌 조회
-        if (account == null) {
-            return AutoInvestExecutionResponse.failed(request.idempotencyKey(), AutoInvestFailureCode.INVEST_ACCOUNT_NOT_FOUND);
+        if (!SweepEventType.SWEEP_REQUESTED.name().equals(request.eventType())) {
+            ledger.fail(AutoInvestFailureCode.INVALID_EVENT_TYPE);
+            return AutoInvestExecutionResponse.from(ledger);
         }
 
-        // 활성 상태인지
+        InvestAccount account = accountRepository.findByUserUuid(request.userUuid()).orElse(null);
+
+        if (account == null) {
+            ledger.fail(AutoInvestFailureCode.INVEST_ACCOUNT_NOT_FOUND);
+            return AutoInvestExecutionResponse.from(ledger);
+        }
+
         if (!AccountStatus.ACTIVE.equals(account.getAccountStatus())) {
-            return AutoInvestExecutionResponse.failed(request.idempotencyKey(), AutoInvestFailureCode.INVEST_ACCOUNT_NOT_ACTIVE);
+            ledger.fail(AutoInvestFailureCode.INVEST_ACCOUNT_NOT_ACTIVE);
+            return AutoInvestExecutionResponse.from(ledger);
         }
 
         InvestEtfProduct etf = etfProductRepository.findById(request.etfId()).orElse(null);
 
         if (etf == null) {
-            // etf error code로 바꾸기
-            return AutoInvestExecutionResponse.failed(request.idempotencyKey(), AutoInvestFailureCode.ETF_NOT_FOUND);
+            ledger.fail(AutoInvestFailureCode.ETF_NOT_FOUND);
+            return AutoInvestExecutionResponse.from(ledger);
         }
 
         if (!etf.canProvideAutoInvestment()) {
-            return AutoInvestExecutionResponse.failed(request.idempotencyKey(), AutoInvestFailureCode.ETF_NOT_AVAILABLE);
+            ledger.fail(AutoInvestFailureCode.ETF_NOT_AVAILABLE);
+            return AutoInvestExecutionResponse.from(ledger);
         }
 
-        // 리워드 원화 금액으로 매수 수량 계산
         BigDecimal rewardKrw = BigDecimal.valueOf(request.krwAmount());
         BigDecimal fxRate = fxRateProvider.getMonthlySweepUsdKrwRate(request.requestedAt());
         BigDecimal priceUsd = etfPriceProvider.getMonthlySweepEtfExecutionPrice(etf.getTicker(), request.requestedAt());
@@ -103,19 +93,18 @@ public class AutoInvestExecutionService {
 
         if (quantity.signum() <= 0) {
             account.depositKrw(rewardKrw);
-            return AutoInvestExecutionResponse.failed(request.idempotencyKey(), AutoInvestFailureCode.INSUFFICIENT_AMOUNT);
+            ledger.fail(AutoInvestFailureCode.INSUFFICIENT_AMOUNT);
+            return AutoInvestExecutionResponse.from(ledger);
         }
 
         BigDecimal orderAmountUsd = quantity.multiply(priceUsd).setScale(MONEY_SCALE, RoundingMode.DOWN);
         BigDecimal usedKrw = orderAmountUsd.multiply(fxRate).setScale(0, RoundingMode.DOWN);
         BigDecimal remainingKrw = rewardKrw.subtract(usedKrw);
 
-        // 변환하고 남은 애는 원화로 저축해주기
         if (remainingKrw.signum() > 0) {
             account.depositKrw(remainingKrw);
         }
 
-        // 주문 원장 저장
         InvestOrderLedger order = InvestOrderLedger.requestedSweepBuy(
                 request.idempotencyKey(),
                 request.sweepRequestId(),
@@ -153,14 +142,19 @@ public class AutoInvestExecutionService {
 
         etfLedgerRepository.save(InvestAccountEtfLedger.buy(account, etf));
 
-        // 주문 완료 처리
         order.complete();
 
-        return AutoInvestExecutionResponse.completed(
-                execution.getExecutionId(),
-                request.idempotencyKey()
+        ledger.complete(
+                order,
+                execution,
+                fxRate,
+                priceUsd,
+                quantity,
+                usedKrw,
+                remainingKrw
         );
 
+        return AutoInvestExecutionResponse.from(ledger);
     }
 
 }
