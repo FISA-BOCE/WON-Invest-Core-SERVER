@@ -73,6 +73,8 @@ public class InvestAccountService {
             }
         }
 
+        verifyPersistedAccount(investUserUuid, investAccountUuid);
+
         // 5. 응답 반환
         return new CreateInvestAccountResponse(
                 investAccountUuid,
@@ -101,6 +103,13 @@ public class InvestAccountService {
                 .accountStatus(AccountStatus.ACTIVE)
                 .openedAt(openedAt)
                 .build());
+    }
+
+    private void verifyPersistedAccount(UUID investUserUuid, UUID investAccountUuid) {
+        if (!investUserRepository.existsById(investUserUuid)
+                || !investAccountRepository.existsById(investAccountUuid)) {
+            throw new BusinessException(InvestAccountErrorCode.ACCOUNT_PERSISTENCE_FAILED);
+        }
     }
 
     private boolean isAccountNoDuplicate(DataIntegrityViolationException e) {
