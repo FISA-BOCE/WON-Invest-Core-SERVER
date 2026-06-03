@@ -151,4 +151,23 @@ public class AutoInvestSweepLedger extends BaseTimeEntity {
         this.refundKrwAmount = refundKrwAmount;
         this.completedAt = completedAt;
     }
+
+    public void completeKrwOnly(
+            BigDecimal fxRateSnapshot,
+            BigDecimal etfPriceSnapshot,
+            BigDecimal refundKrwAmount,
+            LocalDateTime completedAt
+    ) {
+        this.status = AutoInvestExecutionStatus.COMPLETED;
+        this.failureCode = null;
+        this.failureMessage = null;
+        this.orderId = null;
+        this.executionLedgerId = null;
+        this.fxRateSnapshot = fxRateSnapshot;
+        this.etfPriceSnapshot = etfPriceSnapshot;
+        this.orderQuantity = BigDecimal.ZERO;
+        this.usedKrwAmount = BigDecimal.ZERO;
+        this.refundKrwAmount = refundKrwAmount;
+        this.completedAt = completedAt;
+    }
 }

@@ -121,7 +121,7 @@ public class AutoInvestExecutionService {
         BigDecimal quantity = usdBudget.divide(priceUsd, QUANTITY_SCALE, RoundingMode.DOWN);
 
         if (quantity.signum() <= 0) {
-            return fail(ledger, request, AutoInvestFailureCode.INSUFFICIENT_AMOUNT);
+            return completeKrwOnly(ledger, request, account, fxRate, priceUsd, rewardKrw);
         }
 
         BigDecimal orderAmountUsd = quantity.multiply(priceUsd).setScale(MONEY_SCALE, RoundingMode.DOWN);
@@ -194,6 +194,35 @@ public class AutoInvestExecutionService {
                 quantity,
                 usedKrw,
                 remainingKrw
+        );
+
+        return AutoInvestExecutionResponse.from(ledger);
+    }
+
+    private AutoInvestExecutionResponse completeKrwOnly(
+            AutoInvestSweepLedger ledger,
+            AutoInvestExecutionRequest request,
+            InvestAccount account,
+            BigDecimal fxRate,
+            BigDecimal priceUsd,
+            BigDecimal rewardKrw
+    ) {
+        account.depositKrw(rewardKrw);
+
+        LocalDateTime processedAt = LocalDateTime.now();
+        ledger.completeKrwOnly(
+                fxRate,
+                priceUsd,
+                rewardKrw,
+                processedAt
+        );
+
+        log.info(
+                "자동투자 스윕 KRW 잔액 전환 완료. correlationId={}, idempotencyKey={}, sweepExecutionId={}, refundKrw={}",
+                request.correlationId(),
+                request.idempotencyKey(),
+                ledger.getSweepExecutionId(),
+                rewardKrw
         );
 
         return AutoInvestExecutionResponse.from(ledger);

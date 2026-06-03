@@ -134,7 +134,7 @@ class AutoInvestExecutionServiceTest {
         assertThat(savedOrder.getOrderPriceSnapshot()).isEqualByComparingTo("375.40");
         assertThat(savedOrder.getOrderStatus()).isEqualTo(OrderStatus.COMPLETED);
 
-        assertThat(account.getKrwBalanceAmount()).isGreaterThan(BigDecimal.ZERO);
+        assertThat(account.getKrwBalanceAmount()).isEqualByComparingTo("23");
 
         ArgumentCaptor<InvestExecutionLedger> executionCaptor = ArgumentCaptor.forClass(InvestExecutionLedger.class);
         verify(executionLedgerRepository).save(executionCaptor.capture());
@@ -406,8 +406,8 @@ class AutoInvestExecutionServiceTest {
     }
 
     @Test
-    @DisplayName("매수 가능 수량이 0이면 KRW 잔액을 적립하지 않고 실패 응답을 반환한다")
-    void executeInsufficientAmountDoesNotDepositKrw() {
+    @DisplayName("매수 가능 수량이 0이면 전액을 KRW 잔액으로 적립하고 완료 응답을 반환한다")
+    void executeInsufficientAmountCompletesWithKrwOnly() {
         // given
         AutoInvestExecutionRequest request = validRequest();
         InvestAccount account = activeAccount();
@@ -429,9 +429,19 @@ class AutoInvestExecutionServiceTest {
         AutoInvestExecutionResponse response = service.execute(request);
 
         // then
-        assertThat(response.status()).isEqualTo(AutoInvestExecutionStatus.FAILED);
-        assertThat(response.failureCode()).isEqualTo("SWEEP_FAIL_008");
-        assertThat(account.getKrwBalanceAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(response.status()).isEqualTo(AutoInvestExecutionStatus.COMPLETED);
+        assertThat(response.failureCode()).isNull();
+        assertThat(account.getKrwBalanceAmount()).isEqualByComparingTo("10000");
+
+        ArgumentCaptor<AutoInvestSweepLedger> sweepLedgerCaptor = ArgumentCaptor.forClass(AutoInvestSweepLedger.class);
+        verify(autoInvestSweepLedgerRepository).save(sweepLedgerCaptor.capture());
+        AutoInvestSweepLedger savedSweepLedger = sweepLedgerCaptor.getValue();
+        assertThat(savedSweepLedger.getStatus()).isEqualTo(AutoInvestExecutionStatus.COMPLETED);
+        assertThat(savedSweepLedger.getOrderId()).isNull();
+        assertThat(savedSweepLedger.getExecutionLedgerId()).isNull();
+        assertThat(savedSweepLedger.getOrderQuantity()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(savedSweepLedger.getUsedKrwAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(savedSweepLedger.getRefundKrwAmount()).isEqualByComparingTo("10000");
         verify(orderLedgerRepository, never()).save(any());
         verify(executionLedgerRepository, never()).save(any());
         verify(holdingRepository, never()).save(any());
