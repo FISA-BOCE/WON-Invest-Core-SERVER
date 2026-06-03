@@ -40,7 +40,7 @@ public class AutoInvestExecutionService {
     private final InvestAccountEtfLedgerRepository etfLedgerRepository;
     private final SweepFxRateProvider fxRateProvider;
     private final SweepEtfPriceProvider etfPriceProvider;
-    private final AutoInvestRequestLedgerRepository autoInvestRequestLedgerRepository;
+    private final AutoInvestSweepLedgerRepository autoInvestSweepLedgerRepository;
 
     // 1. 이벤트 타입이 SWEEP_REQUESTED 인지 확인
     // 2. idempotencyKey로 이미 처리한 주문인지 확인
@@ -56,7 +56,7 @@ public class AutoInvestExecutionService {
                 request.etfId()
         );
 
-        return autoInvestRequestLedgerRepository.findByIdempotencyKey(request.idempotencyKey())
+        return autoInvestSweepLedgerRepository.findByIdempotencyKey(request.idempotencyKey())
                 .map(ledger -> {
                     log.info(
                             "자동투자 스윕 중복 요청으로 기존 결과를 반환합니다. correlationId={}, originalCorrelationId={}, idempotencyKey={}, sweepExecutionId={}, status={}",
@@ -73,8 +73,8 @@ public class AutoInvestExecutionService {
 
     // 중복이 아니라 진짜 처음 온 요청일 때 실행됨
     private AutoInvestExecutionResponse executeNew(AutoInvestExecutionRequest request) {
-        AutoInvestRequestLedger ledger =
-                autoInvestRequestLedgerRepository.save(AutoInvestRequestLedger.requested(request));
+        AutoInvestSweepLedger ledger =
+                autoInvestSweepLedgerRepository.save(AutoInvestSweepLedger.requested(request));
 
         if (!SweepEventType.SWEEP_REQUESTED.name().equals(request.eventType())) {
             return fail(ledger, request, AutoInvestFailureCode.INVALID_EVENT_TYPE);
@@ -185,7 +185,7 @@ public class AutoInvestExecutionService {
     }
 
     private AutoInvestExecutionResponse fail(
-            AutoInvestRequestLedger ledger,
+            AutoInvestSweepLedger ledger,
             AutoInvestExecutionRequest request,
             AutoInvestFailureCode failureCode
     ) {

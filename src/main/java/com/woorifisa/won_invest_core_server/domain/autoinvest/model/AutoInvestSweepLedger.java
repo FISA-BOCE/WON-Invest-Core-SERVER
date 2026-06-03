@@ -18,14 +18,14 @@ import java.util.UUID;
 @Getter
 @Entity
 @Table(
-        name = "auto_invest_execution_ledger",
+        name = "auto_invest_sweep_ledger",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_auto_invest_execution_ledger_idempotency_key", columnNames = "idempotency_key"),
-                @UniqueConstraint(name = "uk_auto_invest_execution_ledger_sweep_request_id", columnNames = "sweep_request_id")
+                @UniqueConstraint(name = "uk_auto_invest_sweep_ledger_idempotency_key", columnNames = "idempotency_key"),
+                @UniqueConstraint(name = "uk_auto_invest_sweep_ledger_sweep_request_id", columnNames = "sweep_request_id")
         }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class AutoInvestRequestLedger extends BaseTimeEntity {
+public class AutoInvestSweepLedger extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -104,8 +104,8 @@ public class AutoInvestRequestLedger extends BaseTimeEntity {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    public static AutoInvestRequestLedger requested(AutoInvestExecutionRequest request) {
-        AutoInvestRequestLedger ledger = new AutoInvestRequestLedger();
+    public static AutoInvestSweepLedger requested(AutoInvestExecutionRequest request) {
+        AutoInvestSweepLedger ledger = new AutoInvestSweepLedger();
         ledger.sweepRequestId = request.sweepRequestId();
         ledger.idempotencyKey = request.idempotencyKey();
         ledger.correlationId = request.correlationId();
