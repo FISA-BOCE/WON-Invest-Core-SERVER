@@ -38,7 +38,6 @@ public class AutoInvestExecutionService {
     private final InvestOrderLedgerRepository orderLedgerRepository;
     private final InvestExecutionLedgerRepository executionLedgerRepository;
     private final InvestAccountEtfHoldingRepository holdingRepository;
-    private final InvestAccountEtfLedgerRepository etfLedgerRepository;
     private final SweepFxRateProvider fxRateProvider;
     private final SweepEtfPriceProvider etfPriceProvider;
     private final AutoInvestSweepLedgerRepository autoInvestSweepLedgerRepository;
@@ -168,8 +167,6 @@ public class AutoInvestExecutionService {
 
         holding.buy(quantity, priceUsd, orderAmountUsd);
         holdingRepository.save(holding);
-
-        etfLedgerRepository.save(InvestAccountEtfLedger.buy(account, etf));
 
         order.complete();
 

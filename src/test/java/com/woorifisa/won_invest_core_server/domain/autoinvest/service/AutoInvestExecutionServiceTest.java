@@ -8,7 +8,6 @@ import com.woorifisa.won_invest_core_server.domain.autoinvest.dto.request.AutoIn
 import com.woorifisa.won_invest_core_server.domain.autoinvest.dto.response.AutoInvestExecutionResponse;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.AutoInvestSweepLedger;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfHolding;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfLedger;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestExecutionLedger;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestOrderLedger;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.enums.AutoInvestExecutionStatus;
@@ -17,7 +16,6 @@ import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepEtfP
 import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepFxRateProvider;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestSweepLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfHoldingRepository;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestExecutionLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestOrderLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
@@ -60,9 +58,6 @@ class AutoInvestExecutionServiceTest {
 
     @Mock
     private InvestAccountEtfHoldingRepository holdingRepository;
-
-    @Mock
-    private InvestAccountEtfLedgerRepository etfLedgerRepository;
 
     @Mock
     private SweepFxRateProvider fxRateProvider;
@@ -111,8 +106,6 @@ class AutoInvestExecutionServiceTest {
                 etf.getEtfId()
         )).willReturn(Optional.empty());
         given(holdingRepository.save(any(InvestAccountEtfHolding.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
-        given(etfLedgerRepository.save(any(InvestAccountEtfLedger.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
         // when
@@ -164,8 +157,6 @@ class AutoInvestExecutionServiceTest {
         assertThat(savedSweepLedger.getUsedKrwAmount()).isEqualByComparingTo("9977");
         assertThat(savedSweepLedger.getRefundKrwAmount()).isEqualByComparingTo("23");
         assertThat(savedSweepLedger.getCompletedAt()).isEqualTo(savedExecution.getExecutedAt());
-
-        verify(etfLedgerRepository).save(any(InvestAccountEtfLedger.class));
     }
 
     @Test
@@ -224,7 +215,6 @@ class AutoInvestExecutionServiceTest {
         verify(etfProductRepository, never()).findById(any());
         verify(executionLedgerRepository, never()).findByOrderOrderId(any());
         verify(holdingRepository, never()).save(any());
-        verify(etfLedgerRepository, never()).save(any());
     }
 
     @Test
@@ -286,7 +276,6 @@ class AutoInvestExecutionServiceTest {
         verify(etfProductRepository, never()).findById(any());
         verify(executionLedgerRepository, never()).save(any());
         verify(holdingRepository, never()).save(any());
-        verify(etfLedgerRepository, never()).save(any());
     }
 
     @Test
@@ -312,7 +301,6 @@ class AutoInvestExecutionServiceTest {
         verify(orderLedgerRepository, never()).save(any());
         verify(executionLedgerRepository, never()).save(any());
         verify(holdingRepository, never()).save(any());
-        verify(etfLedgerRepository, never()).save(any());
     }
 
     @Test
@@ -340,7 +328,6 @@ class AutoInvestExecutionServiceTest {
         verify(orderLedgerRepository, never()).save(any());
         verify(executionLedgerRepository, never()).save(any());
         verify(holdingRepository, never()).save(any());
-        verify(etfLedgerRepository, never()).save(any());
     }
 
     @Test
@@ -371,7 +358,6 @@ class AutoInvestExecutionServiceTest {
         verify(orderLedgerRepository, never()).save(any());
         verify(executionLedgerRepository, never()).save(any());
         verify(holdingRepository, never()).save(any());
-        verify(etfLedgerRepository, never()).save(any());
     }
 
     @Test
@@ -402,7 +388,6 @@ class AutoInvestExecutionServiceTest {
         verify(orderLedgerRepository, never()).save(any());
         verify(executionLedgerRepository, never()).save(any());
         verify(holdingRepository, never()).save(any());
-        verify(etfLedgerRepository, never()).save(any());
     }
 
     @Test
@@ -445,7 +430,6 @@ class AutoInvestExecutionServiceTest {
         verify(orderLedgerRepository, never()).save(any());
         verify(executionLedgerRepository, never()).save(any());
         verify(holdingRepository, never()).save(any());
-        verify(etfLedgerRepository, never()).save(any());
     }
 
     @Test
