@@ -15,6 +15,7 @@ import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
 import com.woorifisa.won_invest_core_server.domain.etf.repository.InvestEtfProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,10 +72,14 @@ public class AutoInvestExecutionService {
                 .orElseGet(() -> executeNew(request));
     }
 
-    // 중복이 아니라 진짜 처음 온 요청일 때 실행됨
     private AutoInvestExecutionResponse executeNew(AutoInvestExecutionRequest request) {
-        AutoInvestSweepLedger ledger =
-                autoInvestSweepLedgerRepository.save(AutoInvestSweepLedger.requested(request));
+        AutoInvestSweepLedger ledger;
+
+        try {
+            ledger = autoInvestSweepLedgerRepository.save(AutoInvestSweepLedger.requested(request));
+        } catch (DataIntegrityViolationException exception) {
+            return returnExistingLedgerAfterConcurrentDuplicate(request, exception);
+        }
 
         if (!SweepEventType.SWEEP_REQUESTED.name().equals(request.eventType())) {
             return fail(ledger, request, AutoInvestFailureCode.INVALID_EVENT_TYPE);
@@ -179,6 +184,25 @@ public class AutoInvestExecutionService {
                 quantity,
                 usedKrw,
                 remainingKrw
+        );
+
+        return AutoInvestExecutionResponse.from(ledger);
+    }
+
+    private AutoInvestExecutionResponse returnExistingLedgerAfterConcurrentDuplicate(
+            AutoInvestExecutionRequest request,
+            DataIntegrityViolationException exception
+    ) {
+        AutoInvestSweepLedger ledger = autoInvestSweepLedgerRepository.findByIdempotencyKey(request.idempotencyKey())
+                .orElseThrow(() -> exception);
+
+        log.info(
+                "자동투자 스윕 동시 중복 요청으로 기존 결과를 반환합니다. correlationId={}, originalCorrelationId={}, idempotencyKey={}, sweepExecutionId={}, status={}",
+                request.correlationId(),
+                ledger.getCorrelationId(),
+                request.idempotencyKey(),
+                ledger.getSweepExecutionId(),
+                ledger.getStatus()
         );
 
         return AutoInvestExecutionResponse.from(ledger);

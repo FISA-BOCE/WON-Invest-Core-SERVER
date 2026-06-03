@@ -27,6 +27,7 @@ import com.woorifisa.won_invest_core_server.domain.etf.repository.InvestEtfProdu
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -219,6 +220,66 @@ class AutoInvestExecutionServiceTest {
         verify(accountRepository, never()).findByUserUuid(any());
         verify(etfProductRepository, never()).findById(any());
         verify(executionLedgerRepository, never()).findByOrderOrderId(any());
+        verify(holdingRepository, never()).save(any());
+        verify(etfLedgerRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("동시 멱등 요청으로 원장 저장이 충돌하면 기존 스윕 원장을 다시 조회해 반환한다")
+    void executeConcurrentDuplicateReturnsExistingSweepLedger() {
+        // given
+        AutoInvestExecutionRequest request = validRequest();
+        InvestAccount account = activeAccount();
+        InvestEtfProduct etf = activeEtf();
+        InvestOrderLedger existingOrder = InvestOrderLedger.requestedSweepBuy(
+                request.idempotencyKey(),
+                request.sweepRequestId(),
+                account,
+                etf,
+                new BigDecimal("0.0194"),
+                new BigDecimal("7.2815"),
+                new BigDecimal("375.40"),
+                "USD",
+                request.requestedAt()
+        );
+        existingOrder.complete();
+        InvestExecutionLedger existingExecution = InvestExecutionLedger.completed(
+                existingOrder,
+                account,
+                etf,
+                new BigDecimal("0.0194"),
+                new BigDecimal("375.40"),
+                new BigDecimal("7.2815"),
+                request.requestedAt()
+        );
+        AutoInvestSweepLedger existingLedger = AutoInvestSweepLedger.requested(request);
+        existingLedger.complete(
+                existingOrder,
+                existingExecution,
+                new BigDecimal("1370.00"),
+                new BigDecimal("375.40"),
+                new BigDecimal("0.0194"),
+                new BigDecimal("9975"),
+                new BigDecimal("25")
+        );
+
+        given(autoInvestSweepLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
+                .willReturn(Optional.empty(), Optional.of(existingLedger));
+        given(autoInvestSweepLedgerRepository.save(any(AutoInvestSweepLedger.class)))
+                .willThrow(new DataIntegrityViolationException("duplicate idempotency key"));
+
+        // when
+        AutoInvestExecutionResponse response = service.execute(request);
+
+        // then
+        assertThat(response.status()).isEqualTo(AutoInvestExecutionStatus.COMPLETED);
+        assertThat(response.idempotencyKey()).isEqualTo(request.idempotencyKey());
+        verify(autoInvestSweepLedgerRepository, times(2)).findByIdempotencyKey(request.idempotencyKey());
+        verify(autoInvestSweepLedgerRepository).save(any(AutoInvestSweepLedger.class));
+        verify(orderLedgerRepository, never()).save(any());
+        verify(accountRepository, never()).findByUserUuid(any());
+        verify(etfProductRepository, never()).findById(any());
+        verify(executionLedgerRepository, never()).save(any());
         verify(holdingRepository, never()).save(any());
         verify(etfLedgerRepository, never()).save(any());
     }
