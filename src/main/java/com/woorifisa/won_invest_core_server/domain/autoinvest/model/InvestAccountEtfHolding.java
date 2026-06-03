@@ -87,12 +87,16 @@ public class InvestAccountEtfHolding extends BaseTimeEntity {
 
     //  ETF 매수가 체결됐을 때 보유 잔고를 갱신
     public void buy(BigDecimal quantity, BigDecimal executionPrice, BigDecimal executionAmount) {
+        BigDecimal currentBuyPriceAmount = this.averageBuyPrice.multiply(this.holdingQuantity);
+        BigDecimal newBuyPriceAmount = executionPrice.multiply(quantity);
         BigDecimal newQuantity = this.holdingQuantity.add(quantity);
         BigDecimal newTotalAmount = this.totalBuyAmount.add(executionAmount);
 
         this.holdingQuantity = newQuantity;
         this.totalBuyAmount = newTotalAmount;
-        this.averageBuyPrice = newTotalAmount.divide(newQuantity, 4, RoundingMode.HALF_UP);
+        this.averageBuyPrice = currentBuyPriceAmount
+                .add(newBuyPriceAmount)
+                .divide(newQuantity, 4, RoundingMode.HALF_UP);
 
         updateValuation(executionPrice);
     }
