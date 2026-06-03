@@ -25,7 +25,7 @@ import java.util.UUID;
         }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class AutoInvestExecutionLedger extends BaseTimeEntity {
+public class AutoInvestRequestLedger extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -104,8 +104,8 @@ public class AutoInvestExecutionLedger extends BaseTimeEntity {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    public static AutoInvestExecutionLedger requested(AutoInvestExecutionRequest request) {
-        AutoInvestExecutionLedger ledger = new AutoInvestExecutionLedger();
+    public static AutoInvestRequestLedger requested(AutoInvestExecutionRequest request) {
+        AutoInvestRequestLedger ledger = new AutoInvestRequestLedger();
         ledger.sweepRequestId = request.sweepRequestId();
         ledger.idempotencyKey = request.idempotencyKey();
         ledger.correlationId = request.correlationId();
