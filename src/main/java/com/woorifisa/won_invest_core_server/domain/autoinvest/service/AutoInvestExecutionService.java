@@ -5,7 +5,7 @@ import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccount;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.dto.request.AutoInvestExecutionRequest;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.dto.response.AutoInvestExecutionResponse;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.exception.enums.AutoInvestFailureCode;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.exception.code.AutoInvestFailureCode;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.*;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.enums.SweepEventType;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepEtfPriceProvider;
@@ -109,6 +109,14 @@ public class AutoInvestExecutionService {
         BigDecimal fxRate = fxRateProvider.getMonthlySweepUsdKrwRate(request.requestedAt());
         BigDecimal priceUsd = etfPriceProvider.getMonthlySweepEtfExecutionPrice(etf.getTicker(), request.requestedAt());
 
+        if (isNullOrNotPositive(fxRate)) {
+            return fail(ledger, request, AutoInvestFailureCode.FX_RATE_UNAVAILABLE);
+        }
+
+        if (isNullOrNotPositive(priceUsd)) {
+            return fail(ledger, request, AutoInvestFailureCode.PRICE_UNAVAILABLE);
+        }
+
         BigDecimal usdBudget = rewardKrw.divide(fxRate, 8, RoundingMode.DOWN);
         BigDecimal quantity = usdBudget.divide(priceUsd, QUANTITY_SCALE, RoundingMode.DOWN);
 
@@ -187,6 +195,10 @@ public class AutoInvestExecutionService {
         );
 
         return AutoInvestExecutionResponse.from(ledger);
+    }
+
+    private boolean isNullOrNotPositive(BigDecimal value) {
+        return value == null || value.signum() <= 0;
     }
 
     private AutoInvestExecutionResponse returnExistingLedgerAfterConcurrentDuplicate(

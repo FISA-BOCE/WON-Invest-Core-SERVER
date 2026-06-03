@@ -1,7 +1,7 @@
 package com.woorifisa.won_invest_core_server.domain.autoinvest.model;
 
 import com.woorifisa.won_invest_core_server.domain.autoinvest.dto.request.AutoInvestExecutionRequest;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.exception.enums.AutoInvestFailureCode;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.exception.code.AutoInvestFailureCode;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.enums.AutoInvestExecutionStatus;
 import com.woorifisa.won_invest_core_server.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;

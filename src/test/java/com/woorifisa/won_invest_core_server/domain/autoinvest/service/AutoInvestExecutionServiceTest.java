@@ -339,6 +339,68 @@ class AutoInvestExecutionServiceTest {
     }
 
     @Test
+    @DisplayName("환율이 0 이하이면 실패 응답을 반환하고 매수 계산을 수행하지 않는다")
+    void executeUnavailableFxRateReturnsFailed() {
+        // given
+        AutoInvestExecutionRequest request = validRequest();
+
+        given(autoInvestSweepLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
+                .willReturn(Optional.empty());
+        given(autoInvestSweepLedgerRepository.save(any(AutoInvestSweepLedger.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+        given(accountRepository.findByUserUuid(USER_UUID))
+                .willReturn(Optional.of(activeAccount()));
+        given(etfProductRepository.findById(request.etfId()))
+                .willReturn(Optional.of(activeEtf()));
+        given(fxRateProvider.getMonthlySweepUsdKrwRate(request.requestedAt()))
+                .willReturn(BigDecimal.ZERO);
+        given(etfPriceProvider.getMonthlySweepEtfExecutionPrice("VOO", request.requestedAt()))
+                .willReturn(new BigDecimal("375.40"));
+
+        // when
+        AutoInvestExecutionResponse response = service.execute(request);
+
+        // then
+        assertThat(response.status()).isEqualTo(AutoInvestExecutionStatus.FAILED);
+        assertThat(response.failureCode()).isEqualTo("SWEEP_FAIL_007");
+        verify(orderLedgerRepository, never()).save(any());
+        verify(executionLedgerRepository, never()).save(any());
+        verify(holdingRepository, never()).save(any());
+        verify(etfLedgerRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("ETF 가격이 null이면 실패 응답을 반환하고 매수 계산을 수행하지 않는다")
+    void executeUnavailableEtfPriceReturnsFailed() {
+        // given
+        AutoInvestExecutionRequest request = validRequest();
+
+        given(autoInvestSweepLedgerRepository.findByIdempotencyKey(request.idempotencyKey()))
+                .willReturn(Optional.empty());
+        given(autoInvestSweepLedgerRepository.save(any(AutoInvestSweepLedger.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+        given(accountRepository.findByUserUuid(USER_UUID))
+                .willReturn(Optional.of(activeAccount()));
+        given(etfProductRepository.findById(request.etfId()))
+                .willReturn(Optional.of(activeEtf()));
+        given(fxRateProvider.getMonthlySweepUsdKrwRate(request.requestedAt()))
+                .willReturn(new BigDecimal("1370.00"));
+        given(etfPriceProvider.getMonthlySweepEtfExecutionPrice("VOO", request.requestedAt()))
+                .willReturn(null);
+
+        // when
+        AutoInvestExecutionResponse response = service.execute(request);
+
+        // then
+        assertThat(response.status()).isEqualTo(AutoInvestExecutionStatus.FAILED);
+        assertThat(response.failureCode()).isEqualTo("SWEEP_FAIL_006");
+        verify(orderLedgerRepository, never()).save(any());
+        verify(executionLedgerRepository, never()).save(any());
+        verify(holdingRepository, never()).save(any());
+        verify(etfLedgerRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("첫 ETF 매수의 평균 매수가는 절사된 매수 금액이 아니라 체결가 기준으로 계산한다")
     void firstBuyAveragePriceUsesExecutionPrice() {
         // given
