@@ -1,4 +1,4 @@
-package com.woorifisa.won_invest_core_server.domain.autoinvest.exception.enums;
+package com.woorifisa.won_invest_core_server.domain.autoinvest.exception.code;
 
 import com.woorifisa.won_invest_core_server.global.exception.code.ErrorCode;
 import lombok.Getter;
