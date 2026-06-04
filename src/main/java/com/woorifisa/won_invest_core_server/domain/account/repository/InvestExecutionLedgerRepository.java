@@ -1,7 +1,6 @@
 package com.woorifisa.won_invest_core_server.domain.account.repository;
 
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestExecutionLedger;
-import com.woorifisa.won_invest_core_server.domain.account.model.InvestOrderType;
 import com.woorifisa.won_invest_core_server.domain.account.service.projection.RecentExecutionView;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
