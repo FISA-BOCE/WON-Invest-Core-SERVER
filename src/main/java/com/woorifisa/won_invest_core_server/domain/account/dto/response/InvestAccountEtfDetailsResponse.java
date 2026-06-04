@@ -1,12 +1,12 @@
 package com.woorifisa.won_invest_core_server.domain.account.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public record InvestAccountEtfDetailsResponse(
+        LocalDate baseDate,
         BigDecimal totalEvaluationAmount,
         BigDecimal profitLossAmount,
         BigDecimal profitLossRate,
@@ -27,7 +27,7 @@ public record InvestAccountEtfDetailsResponse(
     }
 
     public record RecentExecutionResponse(
-            LocalDateTime executedAt,
+            OffsetDateTime executedAt,
             String ticker,
             BigDecimal executionQuantity,
             String executionType
