@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 @Transactional
@@ -32,6 +33,8 @@ public class AutoInvestExecutionService {
     private static final int QUANTITY_SCALE = 4;
     private static final int MONEY_SCALE = 4;
     private static final String ORDER_CURRENCY_USD = "USD";
+
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final InvestAccountRepository accountRepository;
     private final InvestEtfProductRepository etfProductRepository;
@@ -149,7 +152,7 @@ public class AutoInvestExecutionService {
 
         orderLedgerRepository.save(order);
 
-        LocalDateTime processedAt = LocalDateTime.now();
+        LocalDateTime processedAt = nowKst();
 
         InvestExecutionLedger execution = InvestExecutionLedger.completed(
                 order,
@@ -257,7 +260,7 @@ public class AutoInvestExecutionService {
             AutoInvestExecutionRequest request,
             AutoInvestFailureCode failureCode
     ) {
-        LocalDateTime failedAt = LocalDateTime.now();
+        LocalDateTime failedAt = nowKst();
         ledger.fail(failureCode, failedAt);
 
         log.warn(
@@ -271,6 +274,10 @@ public class AutoInvestExecutionService {
         );
 
         return AutoInvestExecutionResponse.from(ledger);
+    }
+
+    private LocalDateTime nowKst() {
+        return LocalDateTime.now(KST);
     }
 
 }
