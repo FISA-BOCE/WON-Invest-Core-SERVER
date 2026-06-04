@@ -36,6 +36,7 @@ public record AutoInvestExecutionRequest(
         Long pointLedgerId,
 
         @NotBlank
+        @Pattern(regexp = "\\d{4}-(0[1-9]|1[0-2])")
         String baseMonth,
 
         @NotNull @Positive
