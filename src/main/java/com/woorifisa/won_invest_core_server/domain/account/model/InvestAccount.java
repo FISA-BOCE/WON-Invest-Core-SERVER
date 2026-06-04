@@ -1,5 +1,6 @@
 package com.woorifisa.won_invest_core_server.domain.account.model;
 
+import com.woorifisa.won_invest_core_server.domain.account.model.enums.AccountStatus;
 import com.woorifisa.won_invest_core_server.global.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,6 +20,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -58,24 +60,43 @@ public class InvestAccount extends BaseTimeEntity {
     @Column(name = "account_status", nullable = false)
     private AccountStatus accountStatus;
 
+    @Column(name = "krw_balance_amount", nullable = false, precision = 18, scale = 4)
+    private BigDecimal krwBalanceAmount = BigDecimal.ZERO;
+
     @Column(name = "opened_at", nullable = false)
     private LocalDateTime openedAt;
 
+    public void depositKrw(BigDecimal amount) {
+        if (amount != null && amount.signum() > 0) {
+            this.krwBalanceAmount = this.krwBalanceAmount.add(amount);
+        }
+    }
+
     @Builder
-    public InvestAccount(UUID investAccountUuid, InvestUser investUser, UUID userUuid,
-                         String accountPasswordEnc, String accountNo,
-                         AccountStatus accountStatus, LocalDateTime openedAt) {
+    public InvestAccount(
+            UUID investAccountUuid,
+            InvestUser investUser,
+            UUID userUuid,
+            String accountPasswordEnc,
+            String accountNo,
+            AccountStatus accountStatus,
+            BigDecimal krwBalanceAmount,
+            LocalDateTime openedAt
+    ) {
         if (!investUser.getUserUuid().equals(userUuid)) {
             throw new IllegalArgumentException(
                     "investUser.userUuid and userUuid must match, but got: "
-                    + investUser.getUserUuid() + " vs " + userUuid);
+                            + investUser.getUserUuid() + " vs " + userUuid
+            );
         }
+
         this.investAccountUuid = investAccountUuid;
         this.investUser = investUser;
         this.userUuid = userUuid;
         this.accountPasswordEnc = accountPasswordEnc;
         this.accountNo = accountNo;
         this.accountStatus = accountStatus;
+        this.krwBalanceAmount = krwBalanceAmount != null ? krwBalanceAmount : BigDecimal.ZERO;
         this.openedAt = openedAt;
     }
 }
