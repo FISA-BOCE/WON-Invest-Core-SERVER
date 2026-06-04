@@ -123,7 +123,7 @@ public class InvestAccountEtfQueryService {
                 view.executedAt(),
                 view.ticker(),
                 view.executionQuantity(),
-                view.orderType().name()
+                view.orderType()
         );
     }
 

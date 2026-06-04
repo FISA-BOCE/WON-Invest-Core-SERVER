@@ -28,7 +28,7 @@ public interface InvestExecutionLedgerRepository extends JpaRepository<InvestExe
             """)
     List<RecentExecutionView> findRecentExecutionsByAccountUuid(
             @Param("accountUuid") UUID accountUuid,
-            @Param("buyOrderTypes") List<InvestOrderType> buyOrderTypes,
+            @Param("buyOrderTypes") List<String> buyOrderTypes,
             Pageable pageable
     );
 }

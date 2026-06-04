@@ -30,7 +30,7 @@ public record InvestAccountEtfDetailsResponse(
             LocalDateTime executedAt,
             String ticker,
             BigDecimal executionQuantity,
-            @JsonProperty("executionType") String orderType
+            String executionType
     ) {
     }
 }
