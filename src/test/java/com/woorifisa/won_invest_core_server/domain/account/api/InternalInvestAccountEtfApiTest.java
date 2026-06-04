@@ -5,6 +5,7 @@ import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccount;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccountEtfHolding;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestExecutionLedger;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestOrderLedger;
+import com.woorifisa.won_invest_core_server.domain.account.model.InvestOrderType;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestUser;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountEtfHoldingRepository;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountRepository;
@@ -89,11 +90,11 @@ class InternalInvestAccountEtfApiTest {
         seedHolding(2L, qqqEtfId, "QQQ", "1.00000000", "200.0000", "200.0000", "260.0000", null, null);
         seedHolding(3L, 103L, "SPY", "0.00000000", "300.0000", "0.0000", "0.0000", null, null);
 
-        seedOrderAndExecution(1L, 11L, "BUY", "VOO", "0.50000000", LocalDateTime.of(2026, 6, 4, 12, 0));
-        seedOrderAndExecution(2L, 12L, "BUY", "QQQ", "1.00000000", LocalDateTime.of(2026, 6, 4, 11, 0));
-        seedOrderAndExecution(3L, 13L, "SELL", "VOO", "0.30000000", LocalDateTime.of(2026, 6, 4, 10, 0));
-        seedOrderAndExecution(4L, 14L, "BUY", "SPY", "0.70000000", LocalDateTime.of(2026, 6, 4, 9, 0));
-        seedOrderAndExecution(5L, 15L, "BUY", "DIA", "0.20000000", LocalDateTime.of(2026, 6, 4, 8, 0));
+        seedOrderAndExecution(1L, 11L, InvestOrderType.BUY, "VOO", "0.50000000", LocalDateTime.of(2026, 6, 4, 12, 0));
+        seedOrderAndExecution(2L, 12L, InvestOrderType.PURCHASE, "QQQ", "1.00000000", LocalDateTime.of(2026, 6, 4, 11, 0));
+        seedOrderAndExecution(3L, 13L, InvestOrderType.SELL, "VOO", "0.30000000", LocalDateTime.of(2026, 6, 4, 10, 0));
+        seedOrderAndExecution(4L, 14L, InvestOrderType.AUTO_BUY, "SPY", "0.70000000", LocalDateTime.of(2026, 6, 4, 9, 0));
+        seedOrderAndExecution(5L, 15L, InvestOrderType.BUY, "DIA", "0.20000000", LocalDateTime.of(2026, 6, 4, 8, 0));
 
         mockMvc.perform(get("/internal/invest/accounts/{accountUuid}/etfs", ACCOUNT_UUID)
                         .header(SERVICE_ID_HEADER, SERVICE_ID)
@@ -116,7 +117,9 @@ class InternalInvestAccountEtfApiTest {
                 .andExpect(jsonPath("$.data.recentExecutions[0].ticker").value("VOO"))
                 .andExpect(jsonPath("$.data.recentExecutions[0].executionType").value("BUY"))
                 .andExpect(jsonPath("$.data.recentExecutions[0].executedAt").value("2026-06-04T12:00:00"))
+                .andExpect(jsonPath("$.data.recentExecutions[1].executionType").value("PURCHASE"))
                 .andExpect(jsonPath("$.data.recentExecutions[1].executedAt").value("2026-06-04T11:00:00"))
+                .andExpect(jsonPath("$.data.recentExecutions[2].executionType").value("AUTO_BUY"))
                 .andExpect(jsonPath("$.data.recentExecutions[2].executedAt").value("2026-06-04T09:00:00"));
     }
 
@@ -268,7 +271,7 @@ class InternalInvestAccountEtfApiTest {
     private void seedOrderAndExecution(
             Long orderId,
             Long executionId,
-            String orderType,
+            InvestOrderType orderType,
             String ticker,
             String executionQuantity,
             LocalDateTime executedAt
