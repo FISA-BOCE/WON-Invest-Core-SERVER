@@ -92,10 +92,10 @@ public class AutoInvestSweepLedger extends BaseTimeEntity {
     @Column(name = "order_quantity", precision = 18, scale = 8)
     private BigDecimal orderQuantity;
 
-    @Column(name = "used_krw_amount", precision = 18, scale = 4)
+    @Column(name = "used_krw_amount", precision = 18, scale = 0)
     private BigDecimal usedKrwAmount;
 
-    @Column(name = "refund_krw_amount", precision = 18, scale = 4)
+    @Column(name = "refund_krw_amount", precision = 18, scale = 0)
     private BigDecimal refundKrwAmount;
 
     @Column(name = "requested_at", nullable = false)
