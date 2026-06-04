@@ -127,6 +127,10 @@ public class AutoInvestExecutionService {
         BigDecimal usedKrw = orderAmountUsd.multiply(fxRate).setScale(0, RoundingMode.DOWN);
         BigDecimal remainingKrw = rewardKrw.subtract(usedKrw);
 
+        if (remainingKrw.signum() < 0) {
+            return fail(ledger, request, AutoInvestFailureCode.INVALID_EXECUTION_AMOUNT);
+        }
+
         if (remainingKrw.signum() > 0) {
             account.depositKrw(remainingKrw);
         }
