@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,7 +105,7 @@ class InternalInvestAccountEtfApiTest {
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.code").value("INVEST_200_001"))
                 .andExpect(jsonPath("$.message").value("보유 ETF 상세 조회가 완료되었습니다."))
-                .andExpect(jsonPath("$.data.baseDate").value(LocalDate.now().toString()))
+                .andExpect(jsonPath("$.data.baseDate").value(LocalDate.now(ZoneId.of("Asia/Seoul")).toString()))
                 .andExpect(jsonPath("$.data.totalEvaluationAmount").value(560.0000))
                 .andExpect(jsonPath("$.data.profitLossAmount").value(110.0000))
                 .andExpect(jsonPath("$.data.profitLossRate").value(24.444444))
