@@ -12,6 +12,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -75,7 +76,7 @@ public class InvestAccountEtfHolding {
             BigDecimal profitLossAmount,
             BigDecimal profitLossRate
     ) {
-        this.etfHoldingId = etfHoldingId;
+        this.etfHoldingId = Objects.requireNonNull(etfHoldingId, "etfHoldingId must not be null");
         this.investAccountUuid = investAccountUuid;
         this.investUserUuid = investUserUuid;
         this.userUuid = userUuid;
