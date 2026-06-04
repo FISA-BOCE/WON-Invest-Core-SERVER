@@ -5,7 +5,6 @@ import com.woorifisa.won_invest_core_server.domain.account.exception.InvestAccou
 import com.woorifisa.won_invest_core_server.domain.account.model.AccountStatus;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccount;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccountEtfHolding;
-import com.woorifisa.won_invest_core_server.domain.account.model.InvestOrderType;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountEtfHoldingRepository;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountRepository;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestExecutionLedgerRepository;
@@ -20,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -31,6 +32,8 @@ import java.util.stream.Collectors;
 public class InvestAccountEtfQueryService {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO;
+    private static final String AUTO_BUY_ORDER_TYPE = "AUTO_BUY";
+    private static final ZoneId KST_ZONE_ID = ZoneId.of("Asia/Seoul");
 
     private final InvestAccountRepository investAccountRepository;
     private final InvestAccountEtfHoldingRepository investAccountEtfHoldingRepository;
@@ -78,13 +81,14 @@ public class InvestAccountEtfQueryService {
         List<InvestAccountEtfDetailsResponse.RecentExecutionResponse> recentExecutions =
                 investExecutionLedgerRepository.findRecentExecutionsByAccountUuid(
                                 accountUuid,
-                                List.copyOf(InvestOrderType.buyTypes()),
+                                List.of(AUTO_BUY_ORDER_TYPE),
                                 PageRequest.of(0, 3)
                         ).stream()
                         .map(this::toRecentExecutionResponse)
                         .toList();
 
         return new InvestAccountEtfDetailsResponse(
+                LocalDate.now(KST_ZONE_ID),
                 totalEvaluationAmount,
                 profitLossAmount,
                 profitLossRate,
@@ -120,7 +124,7 @@ public class InvestAccountEtfQueryService {
 
     private InvestAccountEtfDetailsResponse.RecentExecutionResponse toRecentExecutionResponse(RecentExecutionView view) {
         return new InvestAccountEtfDetailsResponse.RecentExecutionResponse(
-                view.executedAt(),
+                view.executedAt().atZone(KST_ZONE_ID).toOffsetDateTime(),
                 view.ticker(),
                 view.executionQuantity(),
                 view.orderType()
