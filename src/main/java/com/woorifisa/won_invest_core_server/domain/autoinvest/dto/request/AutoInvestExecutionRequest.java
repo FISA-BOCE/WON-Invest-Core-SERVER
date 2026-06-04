@@ -2,6 +2,7 @@ package com.woorifisa.won_invest_core_server.domain.autoinvest.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 
 import java.time.LocalDateTime;
