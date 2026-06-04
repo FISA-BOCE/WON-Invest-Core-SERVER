@@ -213,7 +213,7 @@ public class AutoInvestExecutionService {
     ) {
         account.depositKrw(rewardKrw);
 
-        LocalDateTime processedAt = LocalDateTime.now();
+        LocalDateTime processedAt = nowKst();
         ledger.completeKrwOnly(
                 fxRate,
                 priceUsd,
