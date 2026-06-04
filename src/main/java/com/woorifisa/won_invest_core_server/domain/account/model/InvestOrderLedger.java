@@ -2,6 +2,8 @@ package com.woorifisa.won_invest_core_server.domain.account.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -49,8 +51,9 @@ public class InvestOrderLedger {
     @Column(name = "ticker", nullable = false, length = 20)
     private String ticker;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "order_type", nullable = false, length = 30)
-    private String orderType;
+    private InvestOrderType orderType;
 
     @Column(name = "order_method", nullable = false, length = 30)
     private String orderMethod;
@@ -89,7 +92,7 @@ public class InvestOrderLedger {
             UUID investUserUuid,
             Long etfId,
             String ticker,
-            String orderType,
+            InvestOrderType orderType,
             String orderMethod,
             String orderCurrency,
             BigDecimal orderAmount,

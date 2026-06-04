@@ -1,5 +1,7 @@
 package com.woorifisa.won_invest_core_server.domain.account.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,7 +30,7 @@ public record InvestAccountEtfDetailsResponse(
             LocalDateTime executedAt,
             String ticker,
             BigDecimal executionQuantity,
-            String executionType
+            @JsonProperty("executionType") String orderType
     ) {
     }
 }
