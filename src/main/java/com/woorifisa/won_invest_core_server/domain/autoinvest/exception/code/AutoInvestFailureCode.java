@@ -16,7 +16,8 @@ public enum AutoInvestFailureCode implements ErrorCode {
     PRICE_UNAVAILABLE(HttpStatus.OK, "SWEEP_FAIL_006", "ETF 현재가를 조회할 수 없습니다."),
     FX_RATE_UNAVAILABLE(HttpStatus.OK, "SWEEP_FAIL_007", "환율을 조회할 수 없습니다."),
     INSUFFICIENT_AMOUNT(HttpStatus.OK, "SWEEP_FAIL_008", "매수 가능한 금액이 부족합니다."),
-    EXECUTION_LEDGER_NOT_FOUND(HttpStatus.OK, "SWEEP_FAIL_009", "기존 스윕 주문의 체결 원장을 찾을 수 없습니다.");
+    EXECUTION_LEDGER_NOT_FOUND(HttpStatus.OK, "SWEEP_FAIL_009", "기존 스윕 주문의 체결 원장을 찾을 수 없습니다."),
+    INVALID_EXECUTION_AMOUNT(HttpStatus.OK, "SWEEP_FAIL_010", "매수 후 남은 금액이 음수로, 매수가 불가능합니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
