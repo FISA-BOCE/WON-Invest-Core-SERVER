@@ -2,9 +2,9 @@ package com.woorifisa.won_invest_core_server.domain.account.service;
 
 import com.woorifisa.won_invest_core_server.domain.account.dto.response.InvestAccountEtfDetailsResponse;
 import com.woorifisa.won_invest_core_server.domain.account.exception.InvestAccountErrorCode;
-import com.woorifisa.won_invest_core_server.domain.account.model.AccountStatus;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccount;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccountEtfHolding;
+import com.woorifisa.won_invest_core_server.domain.account.model.enums.AccountStatus;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountEtfHoldingRepository;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountRepository;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestExecutionLedgerRepository;
