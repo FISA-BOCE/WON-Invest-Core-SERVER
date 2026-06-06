@@ -6,14 +6,12 @@ import com.woorifisa.won_invest_core_server.domain.etf.service.InvestEtfProductS
 import com.woorifisa.won_invest_core_server.global.response.ApiResponse;
 import com.woorifisa.won_invest_core_server.global.response.SuccessStatus;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Internal ETF Product API", description = "내부 ETF 상품 마스터 동기화 API")
@@ -36,10 +34,6 @@ public class InternalEtfProductApi {
     // Channel 서버의 ETF 동기화 요청을 받아서
     @PostMapping("/internal/etf-products/sync")
     public ResponseEntity<ApiResponse<EtfProductUpsertResponse>> upsertEtfProduct(
-            @Parameter(description = "호출 서비스 식별자", required = true)
-            @RequestHeader("X-Service-ID") String serviceId,
-            @Parameter(description = "내부 API 인증 키", required = true)
-            @RequestHeader("X-Internal-Api-Key") String internalApiKey,
             @Valid @RequestBody EtfProductUpsertRequest request
     ) {
         EtfProductUpsertResponse response = investEtfProductService.upsertEtfProduct(request);

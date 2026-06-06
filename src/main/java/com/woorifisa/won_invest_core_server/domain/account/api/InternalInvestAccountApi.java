@@ -51,10 +51,6 @@ public class InternalInvestAccountApi {
     )
     @GetMapping("/{accountUuid}/etfs")
     public ResponseEntity<ApiResponse<InvestAccountEtfDetailsResponse>> getAccountEtfDetails(
-            @Parameter(description = "호출 서비스 식별자", required = true)
-            @RequestHeader("X-Service-ID") String serviceId,
-            @Parameter(description = "내부 API 인증 키", required = true)
-            @RequestHeader("X-Internal-Api-Key") String internalApiKey,
             @Parameter(description = "원앱 통합 사용자 UUID", required = true)
             @RequestHeader("X-User-UUID") UUID userUuid,
             @Parameter(description = "증권 계좌 UUID", required = true)

@@ -102,7 +102,7 @@ class InternalEtfProductApiTest {
         // when & then - 기대 결과
         mockMvc.perform(post(INTERNAL_SYNC_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header(SERVICE_ID_HEADER, "won-channel")
+                        .header(SERVICE_ID_HEADER, "won-invest-channel")
                         .header(API_KEY_HEADER, "wrong-api-key")
                         .content(requestBody))
                 .andExpect(status().isUnauthorized())
@@ -137,7 +137,7 @@ class InternalEtfProductApiTest {
         // when & then
         mockMvc.perform(post(INTERNAL_SYNC_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header(SERVICE_ID_HEADER, "won-channel")
+                        .header(SERVICE_ID_HEADER, "won-invest-channel")
                         .header(API_KEY_HEADER, "test-internal-api-key")
                         .content(requestBody))
                 .andExpect(status().isOk())
@@ -184,7 +184,7 @@ class InternalEtfProductApiTest {
         // when & then
         mockMvc.perform(post(INTERNAL_SYNC_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header(SERVICE_ID_HEADER, "won-channel")
+                        .header(SERVICE_ID_HEADER, "won-invest-channel")
                         .header(API_KEY_HEADER, "test-internal-api-key")
                         .content(requestBody))
                 .andDo(print())

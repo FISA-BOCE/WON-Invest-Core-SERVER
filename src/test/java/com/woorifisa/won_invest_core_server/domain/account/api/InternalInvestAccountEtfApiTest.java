@@ -87,9 +87,10 @@ class InternalInvestAccountEtfApiTest {
         seedAccount(USER_UUID, AccountStatus.ACTIVE);
         Long vooEtfId = seedEtfProduct("VOO", "Vanguard S&P 500 ETF");
         Long qqqEtfId = seedEtfProduct("QQQ", "Invesco QQQ Trust");
+        Long spyEtfId = seedEtfProduct("SPY", "SPDR S&P 500 ETF Trust");
         seedHolding(1L, vooEtfId, "VOO", "2.50000000", "100.0000", "250.0000", "300.0000", null, null);
         seedHolding(2L, qqqEtfId, "QQQ", "1.00000000", "200.0000", "200.0000", "260.0000", null, null);
-        seedHolding(3L, 103L, "SPY", "0.00000000", "300.0000", "0.0000", "0.0000", null, null);
+        seedHolding(3L, spyEtfId, "SPY", "0.00000000", "300.0000", "0.0000", "0.0000", null, null);
 
         seedOrderAndExecution(1L, 11L, "AUTO_BUY", "VOO", "0.50000000", LocalDateTime.of(2026, 6, 4, 12, 0));
         seedOrderAndExecution(2L, 12L, "AUTO_BUY", "QQQ", "1.00000000", LocalDateTime.of(2026, 6, 4, 11, 0));
