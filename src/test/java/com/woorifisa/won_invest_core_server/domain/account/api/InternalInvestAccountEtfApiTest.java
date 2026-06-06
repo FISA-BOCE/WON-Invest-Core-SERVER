@@ -1,11 +1,11 @@
 package com.woorifisa.won_invest_core_server.domain.account.api;
 
-import com.woorifisa.won_invest_core_server.domain.account.model.AccountStatus;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccount;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccountEtfHolding;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestExecutionLedger;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestOrderLedger;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestUser;
+import com.woorifisa.won_invest_core_server.domain.account.model.enums.AccountStatus;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountEtfHoldingRepository;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountRepository;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestExecutionLedgerRepository;
@@ -43,7 +43,7 @@ class InternalInvestAccountEtfApiTest {
     private static final String SERVICE_ID_HEADER = "X-Service-ID";
     private static final String API_KEY_HEADER = "X-Internal-Api-Key";
     private static final String USER_UUID_HEADER = "X-User-UUID";
-    private static final String SERVICE_ID = "won-channel";
+    private static final String SERVICE_ID = "won-invest-channel";
     private static final String API_KEY = "test-internal-api-key";
     private static final UUID USER_UUID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final UUID OTHER_USER_UUID = UUID.fromString("22222222-2222-2222-2222-222222222222");
