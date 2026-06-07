@@ -59,13 +59,13 @@ public class InvestAccountEtfHolding extends BaseTimeEntity {
     @Column(name = "total_buy_amount", nullable = false, precision = 18, scale = 4)
     private BigDecimal totalBuyAmount;
 
-    @Column(name = "valuation_amount", nullable = false, precision = 18, scale = 4)
-    private BigDecimal valuationAmount;
+    @Column(name = "evaluation_amount", precision = 18, scale = 4)
+    private BigDecimal evaluationAmount;
 
-    @Column(name = "profit_loss_amount", nullable = false, precision = 18, scale = 4)
+    @Column(name = "profit_loss_amount", precision = 18, scale = 4)
     private BigDecimal profitLossAmount;
 
-    @Column(name = "profit_loss_rate", nullable = false, precision = 10, scale = 6)
+    @Column(name = "profit_loss_rate", precision = 10, scale = 6)
     private BigDecimal profitLossRate;
 
     // 이건 처음으로 어떤 ETF를 사는 사용자에게 빈 보유 잔고 row 생성
@@ -79,7 +79,7 @@ public class InvestAccountEtfHolding extends BaseTimeEntity {
         holding.holdingQuantity = BigDecimal.ZERO;
         holding.averageBuyPrice = BigDecimal.ZERO;
         holding.totalBuyAmount = BigDecimal.ZERO;
-        holding.valuationAmount = BigDecimal.ZERO;
+        holding.evaluationAmount = BigDecimal.ZERO;
         holding.profitLossAmount = BigDecimal.ZERO;
         holding.profitLossRate = BigDecimal.ZERO;
         return holding;
@@ -103,11 +103,11 @@ public class InvestAccountEtfHolding extends BaseTimeEntity {
 
     // 현재 가격 기준으로 평가금액과 손익을 다시 계산하는 메서드
     public void updateValuation(BigDecimal currentPrice) {
-        this.valuationAmount = this.holdingQuantity
+        this.evaluationAmount = this.holdingQuantity
                 .multiply(currentPrice)
                 .setScale(4, RoundingMode.HALF_UP);
 
-        this.profitLossAmount = this.valuationAmount.subtract(this.totalBuyAmount);
+        this.profitLossAmount = this.evaluationAmount.subtract(this.totalBuyAmount);
 
         if (this.totalBuyAmount.signum() == 0) {
             this.profitLossRate = BigDecimal.ZERO;

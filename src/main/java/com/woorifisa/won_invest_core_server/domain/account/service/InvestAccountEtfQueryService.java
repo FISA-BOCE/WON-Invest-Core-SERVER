@@ -3,14 +3,12 @@ package com.woorifisa.won_invest_core_server.domain.account.service;
 import com.woorifisa.won_invest_core_server.domain.account.dto.response.InvestAccountEtfDetailsResponse;
 import com.woorifisa.won_invest_core_server.domain.account.exception.InvestAccountErrorCode;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccount;
-import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccountEtfHolding;
 import com.woorifisa.won_invest_core_server.domain.account.model.enums.AccountStatus;
-import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountEtfHoldingRepository;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountRepository;
-import com.woorifisa.won_invest_core_server.domain.account.repository.InvestExecutionLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.account.service.projection.RecentExecutionView;
-import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
-import com.woorifisa.won_invest_core_server.domain.etf.repository.InvestEtfProductRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfHolding;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfHoldingRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestExecutionLedgerRepository;
 import com.woorifisa.won_invest_core_server.global.exception.handler.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -22,9 +20,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +34,6 @@ public class InvestAccountEtfQueryService {
     private final InvestAccountRepository investAccountRepository;
     private final InvestAccountEtfHoldingRepository investAccountEtfHoldingRepository;
     private final InvestExecutionLedgerRepository investExecutionLedgerRepository;
-    private final InvestEtfProductRepository investEtfProductRepository;
 
     public InvestAccountEtfDetailsResponse getAccountEtfDetails(UUID accountUuid, UUID userUuid) {
         InvestAccount account = investAccountRepository.findById(accountUuid)
@@ -53,18 +48,10 @@ public class InvestAccountEtfQueryService {
         }
 
         List<InvestAccountEtfHolding> holdings = investAccountEtfHoldingRepository
-                .findByInvestAccountUuidAndHoldingQuantityGreaterThanOrderByEtfHoldingIdAsc(accountUuid, ZERO);
-
-        Map<Long, String> etfNameById = investEtfProductRepository.findAllById(holdings.stream()
-                        .map(InvestAccountEtfHolding::getEtfId)
-                        .filter(id -> id != null)
-                        .distinct()
-                        .toList())
-                .stream()
-                .collect(Collectors.toMap(InvestEtfProduct::getEtfId, InvestEtfProduct::getEtfName, (left, right) -> left));
+                .findByInvestAccountInvestAccountUuidAndHoldingQuantityGreaterThanOrderByEtfHoldingIdAsc(accountUuid, ZERO);
 
         List<InvestAccountEtfDetailsResponse.HoldingResponse> holdingResponses = holdings.stream()
-                .map(holding -> toHoldingResponse(holding, etfNameById))
+                .map(this::toHoldingResponse)
                 .toList();
 
         BigDecimal totalEvaluationAmount = holdings.stream()
@@ -97,22 +84,18 @@ public class InvestAccountEtfQueryService {
         );
     }
 
-    private InvestAccountEtfDetailsResponse.HoldingResponse toHoldingResponse(
-            InvestAccountEtfHolding holding,
-            Map<Long, String> etfNameById
-    ) {
+    private InvestAccountEtfDetailsResponse.HoldingResponse toHoldingResponse(InvestAccountEtfHolding holding) {
         BigDecimal evaluationAmount = nullSafe(holding.getEvaluationAmount());
         BigDecimal totalBuyAmount = resolveTotalBuyAmount(holding);
         BigDecimal profitLossAmount = holding.getProfitLossAmount() != null
                 ? holding.getProfitLossAmount()
                 : evaluationAmount.subtract(totalBuyAmount);
-        BigDecimal profitLossRate = holding.getProfitLossRate() != null
-                ? holding.getProfitLossRate()
-                : calculateRate(profitLossAmount, totalBuyAmount);
+        BigDecimal profitLossRate = calculateRate(profitLossAmount, totalBuyAmount);
+        Long etfId = holding.getEtf().getEtfId();
 
         return new InvestAccountEtfDetailsResponse.HoldingResponse(
-                holding.getEtfId(),
-                holding.getEtfId() == null ? null : etfNameById.get(holding.getEtfId()),
+                etfId,
+                holding.getEtf().getEtfName(),
                 holding.getTicker(),
                 holding.getHoldingQuantity(),
                 holding.getAverageBuyPrice(),

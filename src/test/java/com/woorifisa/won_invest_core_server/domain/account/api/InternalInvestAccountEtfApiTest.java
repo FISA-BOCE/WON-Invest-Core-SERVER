@@ -1,16 +1,16 @@
 package com.woorifisa.won_invest_core_server.domain.account.api;
 
-import com.woorifisa.won_invest_core_server.domain.account.model.AccountStatus;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccount;
-import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccountEtfHolding;
-import com.woorifisa.won_invest_core_server.domain.account.model.InvestExecutionLedger;
-import com.woorifisa.won_invest_core_server.domain.account.model.InvestOrderLedger;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestUser;
-import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountEtfHoldingRepository;
+import com.woorifisa.won_invest_core_server.domain.account.model.enums.AccountStatus;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountRepository;
-import com.woorifisa.won_invest_core_server.domain.account.repository.InvestExecutionLedgerRepository;
-import com.woorifisa.won_invest_core_server.domain.account.repository.InvestOrderLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestUserRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfHolding;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestExecutionLedger;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestOrderLedger;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfHoldingRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestExecutionLedgerRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestOrderLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
 import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfCurrency;
 import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfProductStatus;
@@ -30,7 +30,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,7 +42,7 @@ class InternalInvestAccountEtfApiTest {
     private static final String SERVICE_ID_HEADER = "X-Service-ID";
     private static final String API_KEY_HEADER = "X-Internal-Api-Key";
     private static final String USER_UUID_HEADER = "X-User-UUID";
-    private static final String SERVICE_ID = "won-channel";
+    private static final String SERVICE_ID = "won-invest-channel";
     private static final String API_KEY = "test-internal-api-key";
     private static final UUID USER_UUID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final UUID OTHER_USER_UUID = UUID.fromString("22222222-2222-2222-2222-222222222222");
@@ -87,15 +86,16 @@ class InternalInvestAccountEtfApiTest {
         seedAccount(USER_UUID, AccountStatus.ACTIVE);
         Long vooEtfId = seedEtfProduct("VOO", "Vanguard S&P 500 ETF");
         Long qqqEtfId = seedEtfProduct("QQQ", "Invesco QQQ Trust");
-        seedHolding(1L, vooEtfId, "VOO", "2.50000000", "100.0000", "250.0000", "300.0000", null, null);
-        seedHolding(2L, qqqEtfId, "QQQ", "1.00000000", "200.0000", "200.0000", "260.0000", null, null);
-        seedHolding(3L, 103L, "SPY", "0.00000000", "300.0000", "0.0000", "0.0000", null, null);
+        Long spyEtfId = seedEtfProduct("SPY", "SPDR S&P 500 ETF Trust");
+        seedHolding(vooEtfId, "2.50000000", "100.0000", "250.0000", "300.0000");
+        seedHolding(qqqEtfId, "1.00000000", "200.0000", "200.0000", "260.0000");
+        seedHolding(spyEtfId, "0.00000000", "300.0000", "0.0000", "0.0000");
 
-        seedOrderAndExecution(1L, 11L, "AUTO_BUY", "VOO", "0.50000000", LocalDateTime.of(2026, 6, 4, 12, 0));
-        seedOrderAndExecution(2L, 12L, "AUTO_BUY", "QQQ", "1.00000000", LocalDateTime.of(2026, 6, 4, 11, 0));
-        seedOrderAndExecution(3L, 13L, "SELL", "VOO", "0.30000000", LocalDateTime.of(2026, 6, 4, 10, 0));
-        seedOrderAndExecution(4L, 14L, "AUTO_BUY", "SPY", "0.70000000", LocalDateTime.of(2026, 6, 4, 9, 0));
-        seedOrderAndExecution(5L, 15L, "BUY", "DIA", "0.20000000", LocalDateTime.of(2026, 6, 4, 8, 0));
+        seedOrderAndExecution(1L, "AUTO_BUY", "VOO", "0.50000000", LocalDateTime.of(2026, 6, 4, 12, 0));
+        seedOrderAndExecution(2L, "AUTO_BUY", "QQQ", "1.00000000", LocalDateTime.of(2026, 6, 4, 11, 0));
+        seedOrderAndExecution(3L, "SELL", "VOO", "0.30000000", LocalDateTime.of(2026, 6, 4, 10, 0));
+        seedOrderAndExecution(4L, "AUTO_BUY", "SPY", "0.70000000", LocalDateTime.of(2026, 6, 4, 9, 0));
+        seedOrderAndExecution(5L, "BUY", "DIA", "0.20000000", LocalDateTime.of(2026, 6, 4, 8, 0));
 
         mockMvc.perform(get("/internal/invest/accounts/{accountUuid}/etfs", ACCOUNT_UUID)
                         .header(SERVICE_ID_HEADER, SERVICE_ID)
@@ -197,7 +197,7 @@ class InternalInvestAccountEtfApiTest {
     void getAccountEtfDetails_zeroBuyAmountReturnsZeroRate() throws Exception {
         seedAccount(USER_UUID, AccountStatus.ACTIVE);
         Long vooEtfId = seedEtfProduct("VOO", "Vanguard S&P 500 ETF");
-        seedHolding(1L, vooEtfId, "VOO", "1.00000000", "0.0000", "0.0000", "100.0000", null, null);
+        seedHolding(vooEtfId, "1.00000000", "0.0000", "0.0000", "100.0000");
 
         mockMvc.perform(get("/internal/invest/accounts/{accountUuid}/etfs", ACCOUNT_UUID)
                         .header(SERVICE_ID_HEADER, SERVICE_ID)
@@ -244,70 +244,73 @@ class InternalInvestAccountEtfApiTest {
     }
 
     private void seedHolding(
-            Long holdingId,
             Long etfId,
-            String ticker,
             String holdingQuantity,
             String averageBuyPrice,
             String totalBuyAmount,
-            String evaluationAmount,
-            String profitLossAmount,
-            String profitLossRate
+            String evaluationAmount
     ) {
-        investAccountEtfHoldingRepository.save(InvestAccountEtfHolding.builder()
-                .etfHoldingId(holdingId)
-                .investAccountUuid(ACCOUNT_UUID)
-                .investUserUuid(INVEST_USER_UUID)
-                .userUuid(USER_UUID)
-                .etfId(etfId)
-                .ticker(ticker)
-                .holdingQuantity(new BigDecimal(holdingQuantity))
-                .averageBuyPrice(new BigDecimal(averageBuyPrice))
-                .totalBuyAmount(new BigDecimal(totalBuyAmount))
-                .evaluationAmount(new BigDecimal(evaluationAmount))
-                .profitLossAmount(profitLossAmount == null ? null : new BigDecimal(profitLossAmount))
-                .profitLossRate(profitLossRate == null ? null : new BigDecimal(profitLossRate))
-                .build());
+        InvestAccount account = investAccountRepository.findById(ACCOUNT_UUID).orElseThrow();
+        InvestEtfProduct etf = investEtfProductRepository.findById(etfId).orElseThrow();
+        InvestAccountEtfHolding holding = InvestAccountEtfHolding.empty(account, etf);
+
+        BigDecimal quantity = new BigDecimal(holdingQuantity);
+        BigDecimal averagePrice = new BigDecimal(averageBuyPrice);
+        BigDecimal buyAmount = new BigDecimal(totalBuyAmount);
+        if (quantity.signum() > 0) {
+            holding.buy(quantity, averagePrice, buyAmount);
+        }
+        holding.updateValuation(resolveCurrentPrice(quantity, new BigDecimal(evaluationAmount)));
+
+        investAccountEtfHoldingRepository.save(holding);
     }
 
     private void seedOrderAndExecution(
             Long orderId,
-            Long executionId,
             String orderType,
             String ticker,
             String executionQuantity,
             LocalDateTime executedAt
     ) {
-        investOrderLedgerRepository.save(InvestOrderLedger.builder()
-                .orderId(orderId)
-                .investAccountUuid(ACCOUNT_UUID)
-                .userUuid(USER_UUID)
-                .investUserUuid(INVEST_USER_UUID)
-                .etfId(101L)
-                .ticker(ticker)
-                .orderType(orderType)
-                .orderMethod("MARKET")
-                .orderCurrency("USD")
-                .orderAmount(new BigDecimal("100.0000"))
-                .orderQuantity(new BigDecimal(executionQuantity))
-                .referencePrice(new BigDecimal("100.0000"))
-                .orderStatus("COMPLETED")
-                .orderedAt(executedAt.minusMinutes(1))
-                .idempotencyKey("idem-" + orderId)
-                .build());
+        if (!"AUTO_BUY".equals(orderType)) {
+            return;
+        }
 
-        investExecutionLedgerRepository.save(InvestExecutionLedger.builder()
-                .executionId(executionId)
-                .orderId(orderId)
-                .investAccountUuid(ACCOUNT_UUID)
-                .userUuid(USER_UUID)
-                .investUserUuid(INVEST_USER_UUID)
-                .etfId(101L)
-                .ticker(ticker)
-                .executionQuantity(new BigDecimal(executionQuantity))
-                .executionPrice(new BigDecimal("100.0000"))
-                .executionAmount(new BigDecimal("100.0000"))
-                .executedAt(executedAt)
-                .build());
+        InvestAccount account = investAccountRepository.findById(ACCOUNT_UUID).orElseThrow();
+        InvestEtfProduct etf = investEtfProductRepository.findByExternalProviderAndTicker("KIS", ticker).orElseThrow();
+        BigDecimal quantity = new BigDecimal(executionQuantity);
+        BigDecimal price = new BigDecimal("100.0000");
+        BigDecimal amount = price.multiply(quantity);
+
+        InvestOrderLedger order = InvestOrderLedger.requestedSweepBuy(
+                "idem-" + orderId,
+                orderId,
+                account,
+                etf,
+                quantity,
+                amount,
+                price,
+                "USD",
+                executedAt.minusMinutes(1)
+        );
+        order.complete();
+        InvestOrderLedger savedOrder = investOrderLedgerRepository.save(order);
+
+        investExecutionLedgerRepository.save(InvestExecutionLedger.completed(
+                savedOrder,
+                account,
+                etf,
+                quantity,
+                price,
+                amount,
+                executedAt
+        ));
+    }
+
+    private BigDecimal resolveCurrentPrice(BigDecimal quantity, BigDecimal evaluationAmount) {
+        if (quantity.signum() == 0) {
+            return BigDecimal.ZERO;
+        }
+        return evaluationAmount.divide(quantity, 4, java.math.RoundingMode.HALF_UP);
     }
 }
