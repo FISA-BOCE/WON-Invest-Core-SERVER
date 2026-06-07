@@ -41,8 +41,8 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         // '/internal/**' 요청은 인증 필요
                         .requestMatchers("/internal/**").hasRole("INTERNAL")
-                        // 그 외 요청은 일단 허용
-                        .anyRequest().permitAll()
+                        // 명시적으로 허용한 경로 외에는 차단
+                        .anyRequest().denyAll()
                 )
                 // Spring Security의 기본 로그인 인증 필터보다 먼저 -> InternalApiAuthFilter를 실행
                 .addFilterBefore(
