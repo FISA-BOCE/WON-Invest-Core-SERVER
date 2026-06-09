@@ -1,0 +1,7 @@
+internal:
+  auth:
+    service-id: won-invest-channel
+    api-key: test-internal-api-key
+
+crypto:
+  secret-key: eGVzaC1jYXJsLWNoYW5uZWwtYWVzLWtleS0zMmJ5dGU=

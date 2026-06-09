@@ -35,3 +35,14 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Local config ###
+src/main/resources/application.yml
+src/main/resources/application-local.yml
+src/test/resources/application.yml
+
+### Claude ###
+.claude/
+CLAUDE.md
+
+scripts/.DS_Store

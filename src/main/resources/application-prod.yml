@@ -1,3 +1,6 @@
+server:
+  port: ${SERVER_PORT:8084}
+
 spring:
   datasource:
     url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/won_invest_core_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
@@ -6,15 +9,23 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
     open-in-view: false
 
-server:
-  port: 8084
+app:
+  security:
+    jwt-secret: ${APP_SECURITY_JWT_SECRET}
+    crypto-secret: ${APP_SECURITY_CRYPTO_SECRET}
+
+internal:
+  auth:
+    service-id: ${INTERNAL_SERVICE_ID}
+    api-key: ${INTERNAL_API_KEY}
 
 management:
   endpoints:
