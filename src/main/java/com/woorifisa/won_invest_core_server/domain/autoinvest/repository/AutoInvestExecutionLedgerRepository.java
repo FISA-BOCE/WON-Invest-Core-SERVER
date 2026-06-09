@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface InvestExecutionLedgerRepository extends JpaRepository<InvestExecutionLedger, Long> {
+public interface AutoInvestExecutionLedgerRepository extends JpaRepository<InvestExecutionLedger, Long> {
     Optional<InvestExecutionLedger> findByOrderOrderId(Long orderId);
 
     @Query("""
@@ -21,14 +21,12 @@ public interface InvestExecutionLedgerRepository extends JpaRepository<InvestExe
                 e.executionQuantity,
                 'AUTO_BUY'
             )
-            from InvestExecutionLedger e
+            from AutoInvestExecutionLedger e
             where e.investAccount.investAccountUuid = :accountUuid
-              and 'AUTO_BUY' in :buyOrderTypes
             order by e.executedAt desc
             """)
     List<RecentExecutionView> findRecentExecutionsByAccountUuid(
             @Param("accountUuid") UUID accountUuid,
-            @Param("buyOrderTypes") List<String> buyOrderTypes,
             Pageable pageable
     );
 }

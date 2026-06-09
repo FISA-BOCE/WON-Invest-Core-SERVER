@@ -15,9 +15,9 @@ import com.woorifisa.won_invest_core_server.domain.autoinvest.model.enums.OrderS
 import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepEtfPriceProvider;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepFxRateProvider;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestSweepLedgerRepository;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfHoldingRepository;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestExecutionLedgerRepository;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestOrderLedgerRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestAccountEtfHoldingRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestExecutionLedgerRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestOrderLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
 import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfCurrency;
 import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfProductStatus;
@@ -51,13 +51,13 @@ class AutoInvestExecutionServiceTest {
     private InvestEtfProductRepository etfProductRepository;
 
     @Mock
-    private InvestOrderLedgerRepository orderLedgerRepository;
+    private AutoInvestOrderLedgerRepository orderLedgerRepository;
 
     @Mock
-    private InvestExecutionLedgerRepository executionLedgerRepository;
+    private AutoInvestExecutionLedgerRepository executionLedgerRepository;
 
     @Mock
-    private InvestAccountEtfHoldingRepository holdingRepository;
+    private AutoInvestAccountEtfHoldingRepository holdingRepository;
 
     @Mock
     private SweepFxRateProvider fxRateProvider;

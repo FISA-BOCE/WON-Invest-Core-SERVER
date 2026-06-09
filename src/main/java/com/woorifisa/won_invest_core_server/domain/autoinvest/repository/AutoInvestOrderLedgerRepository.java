@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface InvestOrderLedgerRepository extends JpaRepository<InvestOrderLedger, Long > {
+public interface AutoInvestOrderLedgerRepository extends JpaRepository<InvestOrderLedger, Long > {
     Optional<InvestOrderLedger> findByIdempotencyKey(String idempotencyKey);
     Optional<InvestOrderLedger> findBySweepId(Long sweepId);
 }

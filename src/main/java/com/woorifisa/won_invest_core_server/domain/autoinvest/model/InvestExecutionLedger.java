@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Getter
-@Entity
+@Entity(name = "AutoInvestExecutionLedger")
 @Table(name = "invest_execution_ledger")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class InvestExecutionLedger extends BaseTimeEntity {
