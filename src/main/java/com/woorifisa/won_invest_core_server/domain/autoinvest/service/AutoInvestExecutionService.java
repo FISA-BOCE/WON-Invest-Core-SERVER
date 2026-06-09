@@ -10,7 +10,10 @@ import com.woorifisa.won_invest_core_server.domain.autoinvest.model.*;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.enums.SweepEventType;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepEtfPriceProvider;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.provider.SweepFxRateProvider;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.*;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestAccountEtfHoldingRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestExecutionLedgerRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestOrderLedgerRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestSweepLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
 import com.woorifisa.won_invest_core_server.domain.etf.repository.InvestEtfProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,9 +41,9 @@ public class AutoInvestExecutionService {
 
     private final InvestAccountRepository accountRepository;
     private final InvestEtfProductRepository etfProductRepository;
-    private final InvestOrderLedgerRepository orderLedgerRepository;
-    private final InvestExecutionLedgerRepository executionLedgerRepository;
-    private final InvestAccountEtfHoldingRepository holdingRepository;
+    private final AutoInvestOrderLedgerRepository orderLedgerRepository;
+    private final AutoInvestExecutionLedgerRepository executionLedgerRepository;
+    private final AutoInvestAccountEtfHoldingRepository holdingRepository;
     private final SweepFxRateProvider fxRateProvider;
     private final SweepEtfPriceProvider etfPriceProvider;
     private final AutoInvestSweepLedgerRepository autoInvestSweepLedgerRepository;
