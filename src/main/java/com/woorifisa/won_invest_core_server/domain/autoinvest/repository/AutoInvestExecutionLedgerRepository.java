@@ -19,17 +19,14 @@ public interface AutoInvestExecutionLedgerRepository extends JpaRepository<Inves
                 e.executedAt,
                 e.ticker,
                 e.executionQuantity,
-                o.orderType
+                'AUTO_BUY'
             )
             from AutoInvestExecutionLedger e
-            join e.order o
             where e.investAccount.investAccountUuid = :accountUuid
-              and o.orderType in :orderTypes
             order by e.executedAt desc
             """)
     List<RecentExecutionView> findRecentExecutionsByAccountUuid(
             @Param("accountUuid") UUID accountUuid,
-            @Param("orderTypes") List<String> orderTypes,
             Pageable pageable
     );
 }

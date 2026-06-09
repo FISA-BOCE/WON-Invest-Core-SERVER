@@ -28,7 +28,6 @@ import java.util.UUID;
 public class InvestAccountEtfQueryService {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO;
-    private static final String AUTO_BUY_ORDER_TYPE = "AUTO_BUY";
     private static final ZoneId KST_ZONE_ID = ZoneId.of("Asia/Seoul");
 
     private final InvestAccountRepository investAccountRepository;
@@ -68,7 +67,6 @@ public class InvestAccountEtfQueryService {
         List<InvestAccountEtfDetailsResponse.RecentExecutionResponse> recentExecutions =
                 investExecutionLedgerRepository.findRecentExecutionsByAccountUuid(
                                 accountUuid,
-                                List.of(AUTO_BUY_ORDER_TYPE),
                                 PageRequest.of(0, 3)
                         ).stream()
                         .map(this::toRecentExecutionResponse)
