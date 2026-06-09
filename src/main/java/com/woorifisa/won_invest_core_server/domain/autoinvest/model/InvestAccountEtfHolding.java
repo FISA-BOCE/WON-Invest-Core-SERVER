@@ -15,7 +15,7 @@ import java.math.RoundingMode;
 import java.util.UUID;
 
 @Getter
-@Entity
+@Entity(name = "AutoInvestAccountEtfHolding")
 @Table(
         name = "invest_account_etf_holding",
         uniqueConstraints = @UniqueConstraint(
