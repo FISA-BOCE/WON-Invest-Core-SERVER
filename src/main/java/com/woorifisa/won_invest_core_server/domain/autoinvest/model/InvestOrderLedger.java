@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Getter
-@Entity
+@Entity(name = "AutoInvestOrderLedger")
 @Table(
         name = "invest_order_ledger",
         uniqueConstraints = {
