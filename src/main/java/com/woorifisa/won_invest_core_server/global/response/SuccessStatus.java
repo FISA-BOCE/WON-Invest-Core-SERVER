@@ -14,7 +14,9 @@ public enum SuccessStatus {
     ETF_PRODUCT_SYNCED(HttpStatus.OK, "ETF_200_001", "ETF 상품 마스터 동기화가 완료되었습니다."),
 
     INVEST_ACCOUNT_CREATED(HttpStatus.CREATED, "INVEST_201_001", "증권계좌 개설이 완료되었습니다."),
-    INVEST_ACCOUNT_ETF_DETAILS_FETCHED(HttpStatus.OK, "INVEST_200_001", "보유 ETF 상세 조회가 완료되었습니다.");
+    INVEST_ACCOUNT_ETF_DETAILS_FETCHED(HttpStatus.OK, "INVEST_200_001", "보유 ETF 상세 조회가 완료되었습니다."),
+
+    ADMIN_AUTO_INVEST_EXECUTIONS_FOUND(HttpStatus.OK, "ADMIN_200_001", "관리자 자동투자 실행 현황 조회가 완료되었습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
