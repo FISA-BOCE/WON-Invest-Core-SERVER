@@ -31,4 +31,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      access: unrestricted
+  metrics:
+    tags:
+      application: won-invest-core
