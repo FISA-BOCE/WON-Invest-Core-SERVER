@@ -1,15 +1,12 @@
 package com.woorifisa.won_invest_core_server.domain.account.service;
 
 import com.woorifisa.won_invest_core_server.domain.account.dto.response.InvestAccountEtfDetailsResponse;
-import com.woorifisa.won_invest_core_server.domain.account.exception.InvestAccountErrorCode;
 import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccount;
-import com.woorifisa.won_invest_core_server.domain.account.model.enums.AccountStatus;
-import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountRepository;
 import com.woorifisa.won_invest_core_server.domain.account.service.projection.RecentExecutionView;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestAccountEtfHoldingRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestExecutionLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfHolding;
-import com.woorifisa.won_invest_core_server.global.exception.handler.BusinessException;
+import com.woorifisa.won_invest_core_server.domain.account.exception.InvestAccountErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -30,21 +27,16 @@ public class InvestAccountEtfQueryService {
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private static final ZoneId KST_ZONE_ID = ZoneId.of("Asia/Seoul");
 
-    private final InvestAccountRepository investAccountRepository;
+    private final InvestAccountQuerySupport investAccountQuerySupport;
     private final AutoInvestAccountEtfHoldingRepository investAccountEtfHoldingRepository;
     private final AutoInvestExecutionLedgerRepository investExecutionLedgerRepository;
 
     public InvestAccountEtfDetailsResponse getAccountEtfDetails(UUID accountUuid, UUID userUuid) {
-        InvestAccount account = investAccountRepository.findById(accountUuid)
-                .orElseThrow(() -> new BusinessException(InvestAccountErrorCode.ACCOUNT_NOT_FOUND));
-
-        if (!account.getUserUuid().equals(userUuid)) {
-            throw new BusinessException(InvestAccountErrorCode.ACCOUNT_ACCESS_DENIED);
-        }
-
-        if (account.getAccountStatus() != AccountStatus.ACTIVE) {
-            throw new BusinessException(InvestAccountErrorCode.ACCOUNT_NOT_ACTIVE);
-        }
+        InvestAccount account = investAccountQuerySupport.getAccessibleActiveAccount(
+                accountUuid,
+                userUuid,
+                InvestAccountErrorCode.ACCOUNT_NOT_ACTIVE
+        );
 
         List<InvestAccountEtfHolding> holdings = investAccountEtfHoldingRepository
                 .findByInvestAccountInvestAccountUuidAndHoldingQuantityGreaterThanOrderByEtfHoldingIdAsc(accountUuid, ZERO);
