@@ -40,6 +40,9 @@ dependencies {
 
     // sqs
     implementation 'software.amazon.awssdk:sqs:2.30.31'
+
+    // monitoring
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {
