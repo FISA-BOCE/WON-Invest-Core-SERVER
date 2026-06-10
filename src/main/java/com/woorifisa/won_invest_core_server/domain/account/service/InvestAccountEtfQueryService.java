@@ -6,9 +6,9 @@ import com.woorifisa.won_invest_core_server.domain.account.model.InvestAccount;
 import com.woorifisa.won_invest_core_server.domain.account.model.enums.AccountStatus;
 import com.woorifisa.won_invest_core_server.domain.account.repository.InvestAccountRepository;
 import com.woorifisa.won_invest_core_server.domain.account.service.projection.RecentExecutionView;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestAccountEtfHoldingRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestExecutionLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfHolding;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfHoldingRepository;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestExecutionLedgerRepository;
 import com.woorifisa.won_invest_core_server.global.exception.handler.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -28,12 +28,11 @@ import java.util.UUID;
 public class InvestAccountEtfQueryService {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO;
-    private static final String AUTO_BUY_ORDER_TYPE = "AUTO_BUY";
     private static final ZoneId KST_ZONE_ID = ZoneId.of("Asia/Seoul");
 
     private final InvestAccountRepository investAccountRepository;
-    private final InvestAccountEtfHoldingRepository investAccountEtfHoldingRepository;
-    private final InvestExecutionLedgerRepository investExecutionLedgerRepository;
+    private final AutoInvestAccountEtfHoldingRepository investAccountEtfHoldingRepository;
+    private final AutoInvestExecutionLedgerRepository investExecutionLedgerRepository;
 
     public InvestAccountEtfDetailsResponse getAccountEtfDetails(UUID accountUuid, UUID userUuid) {
         InvestAccount account = investAccountRepository.findById(accountUuid)
@@ -68,7 +67,6 @@ public class InvestAccountEtfQueryService {
         List<InvestAccountEtfDetailsResponse.RecentExecutionResponse> recentExecutions =
                 investExecutionLedgerRepository.findRecentExecutionsByAccountUuid(
                                 accountUuid,
-                                List.of(AUTO_BUY_ORDER_TYPE),
                                 PageRequest.of(0, 3)
                         ).stream()
                         .map(this::toRecentExecutionResponse)

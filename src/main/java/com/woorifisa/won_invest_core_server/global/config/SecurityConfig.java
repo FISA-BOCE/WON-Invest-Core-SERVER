@@ -38,7 +38,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                         // '/internal/**' 요청은 인증 필요
                         .requestMatchers("/internal/**").hasRole("INTERNAL")
                         // 명시적으로 허용한 경로 외에는 차단

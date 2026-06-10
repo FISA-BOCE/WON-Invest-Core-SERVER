@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface InvestAccountEtfHoldingRepository extends JpaRepository<InvestAccountEtfHolding, Long> {
+public interface AutoInvestAccountEtfHoldingRepository extends JpaRepository<InvestAccountEtfHolding, Long> {
     Optional<InvestAccountEtfHolding> findByInvestAccountInvestAccountUuidAndEtfEtfId(UUID investAccountUuid, Long etfId);
 
     List<InvestAccountEtfHolding> findByInvestAccountInvestAccountUuidAndHoldingQuantityGreaterThanOrderByEtfHoldingIdAsc(

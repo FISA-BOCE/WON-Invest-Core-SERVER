@@ -8,9 +8,9 @@ import com.woorifisa.won_invest_core_server.domain.account.repository.InvestUser
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestAccountEtfHolding;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestExecutionLedger;
 import com.woorifisa.won_invest_core_server.domain.autoinvest.model.InvestOrderLedger;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestAccountEtfHoldingRepository;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestExecutionLedgerRepository;
-import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.InvestOrderLedgerRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestAccountEtfHoldingRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestExecutionLedgerRepository;
+import com.woorifisa.won_invest_core_server.domain.autoinvest.repository.AutoInvestOrderLedgerRepository;
 import com.woorifisa.won_invest_core_server.domain.etf.model.InvestEtfProduct;
 import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfCurrency;
 import com.woorifisa.won_invest_core_server.domain.etf.model.enums.EtfProductStatus;
@@ -53,13 +53,13 @@ class InternalInvestAccountEtfApiTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private InvestExecutionLedgerRepository investExecutionLedgerRepository;
+    private AutoInvestExecutionLedgerRepository investExecutionLedgerRepository;
 
     @Autowired
-    private InvestOrderLedgerRepository investOrderLedgerRepository;
+    private AutoInvestOrderLedgerRepository investOrderLedgerRepository;
 
     @Autowired
-    private InvestAccountEtfHoldingRepository investAccountEtfHoldingRepository;
+    private AutoInvestAccountEtfHoldingRepository investAccountEtfHoldingRepository;
 
     @Autowired
     private InvestEtfProductRepository investEtfProductRepository;
