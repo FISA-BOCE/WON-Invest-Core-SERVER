@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface AutoInvestSweepLedgerRepository extends JpaRepository<AutoInvestSweepLedger, Long> {
+public interface AutoInvestSweepLedgerRepository extends JpaRepository<AutoInvestSweepLedger, Long>, AutoInvestSweepLedgerQueryRepository {
     Optional<AutoInvestSweepLedger> findByIdempotencyKey(String idempotencyKey);
 }
