@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/invest/auto-invest")
+@RequestMapping("/internal/admin/invest/auto-invest")
 @Tag(name = "Admin Auto Invest Execution API", description = "관리자 대시보드의 자동투자 실행 현황을 조회하는 API")
 public class AdminAutoInvestExecutionApi {
 
