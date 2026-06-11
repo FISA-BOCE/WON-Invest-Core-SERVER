@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface AutoInvestSweepLedgerRepository extends JpaRepository<AutoInvestSweepLedger, Long> {
+public interface AutoInvestSweepLedgerRepository extends JpaRepository<AutoInvestSweepLedger, Long>, AutoInvestSweepLedgerQueryRepository {
     Optional<AutoInvestSweepLedger> findByIdempotencyKey(String idempotencyKey);
 
     @Query("""
