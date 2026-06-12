@@ -3,6 +3,8 @@ package com.woorifisa.won_invest_core_server.domain.account.api;
 import com.woorifisa.won_invest_core_server.domain.account.dto.request.CreateInvestAccountRequest;
 import com.woorifisa.won_invest_core_server.domain.account.dto.response.CreateInvestAccountResponse;
 import com.woorifisa.won_invest_core_server.domain.account.dto.response.InvestAccountEtfDetailsResponse;
+import com.woorifisa.won_invest_core_server.domain.account.dto.response.InvestAutoInvestExecutionHistoryResponse;
+import com.woorifisa.won_invest_core_server.domain.account.service.InvestAutoInvestExecutionHistoryQueryService;
 import com.woorifisa.won_invest_core_server.domain.account.service.InvestAccountEtfQueryService;
 import com.woorifisa.won_invest_core_server.domain.account.service.InvestAccountService;
 import com.woorifisa.won_invest_core_server.global.response.ApiResponse;
@@ -19,8 +21,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Tag(name = "Internal Account", description = "증권계좌 내부 API")
@@ -31,6 +36,7 @@ public class InternalInvestAccountApi {
 
     private final InvestAccountService investAccountService;
     private final InvestAccountEtfQueryService investAccountEtfQueryService;
+    private final InvestAutoInvestExecutionHistoryQueryService investAutoInvestExecutionHistoryQueryService;
 
     @Operation(summary = "신규 증권계좌 개설", description = "채널계 서버로부터 신규 증권계좌 개설 요청을 처리합니다.")
     @PostMapping("/new")
@@ -61,5 +67,36 @@ public class InternalInvestAccountApi {
         return ResponseEntity
                 .status(SuccessStatus.INVEST_ACCOUNT_ETF_DETAILS_FETCHED.getHttpStatus())
                 .body(ApiResponse.of(SuccessStatus.INVEST_ACCOUNT_ETF_DETAILS_FETCHED, response));
+    }
+
+    @Operation(
+            summary = "자동 투자 체결 이력 조회",
+            description = "내부 채널 서버가 증권계좌의 자동 투자 체결 이력을 커서 기반으로 조회합니다. ACTIVE 상태 계좌만 조회할 수 있습니다."
+    )
+    @GetMapping("/{accountUuid}/auto-invest/executions")
+    public ResponseEntity<ApiResponse<InvestAutoInvestExecutionHistoryResponse>> getAutoInvestExecutionHistories(
+            @RequestHeader("X-User-UUID") UUID userUuid,
+            @PathVariable UUID accountUuid,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String ticker,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        InvestAutoInvestExecutionHistoryResponse response =
+                investAutoInvestExecutionHistoryQueryService.getAutoInvestExecutionHistories(
+                        accountUuid,
+                        userUuid,
+                        from,
+                        to,
+                        status,
+                        ticker,
+                        cursor,
+                        size
+                );
+        return ResponseEntity
+                .status(SuccessStatus.INVEST_AUTO_INVEST_EXECUTION_HISTORIES_FETCHED.getHttpStatus())
+                .body(ApiResponse.of(SuccessStatus.INVEST_AUTO_INVEST_EXECUTION_HISTORIES_FETCHED, response));
     }
 }
