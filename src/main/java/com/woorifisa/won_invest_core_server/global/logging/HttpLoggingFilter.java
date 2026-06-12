@@ -26,8 +26,12 @@ public class HttpLoggingFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (Exception ex) {
             long elapsed = System.currentTimeMillis() - startTime;
+            int status = response.getStatus();
+            if (status < 400) {
+                status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+            }
             log.error("http error method={} uri={} status={} elapsed_ms={}",
-                    request.getMethod(), request.getRequestURI(), 500, elapsed, ex);
+                    request.getMethod(), request.getRequestURI(), status, elapsed, ex);
             loggedOnException = true;
             throw ex;
         } finally {
