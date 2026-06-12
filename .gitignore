@@ -45,4 +45,8 @@ src/test/resources/application.yml
 .claude/
 CLAUDE.md
 
-scripts/.DS_Store
+logs/
+*.log
+
+
+scripts/
