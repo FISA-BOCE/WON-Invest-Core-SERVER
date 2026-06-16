@@ -38,3 +38,7 @@ management:
   metrics:
     tags:
       application: won-invest-core
+    metrics:
+      distribution:
+        percentiles-histogram:
+          all: true
